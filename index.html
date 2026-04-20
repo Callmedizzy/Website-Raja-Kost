@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Raja Kost | Web</title>
+    <title>Raja Kost Web</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -25,74 +25,40 @@
     <aside class="side-menu" id="sideMenu" aria-hidden="true">
       <div class="side-menu__panel">
         <div class="side-menu__header">
-          <img src="assets/icon/app_icon.png" alt="Raja Kost Logo" />
+          <img src="assets/icon/app_icon.png" alt="App icon" />
           <div>
             <p class="menu-label">Akun</p>
-            <h2>Belum login</h2>
+            <h2 id="menuEmail">Belum login</h2>
           </div>
         </div>
-        <nav class="side-menu__list">
-          <button type="button">Wishlist</button>
-          <button type="button">Riwayat Booking</button>
-          <button type="button">Pengaturan</button>
-          <button type="button">Bantuan & Tentang</button>
-          <button type="button" class="danger">Login</button>
-        </nav>
+        <nav class="side-menu__list" id="menuList"></nav>
       </div>
     </aside>
 
-    <main class="app">
-      <header class="topbar reveal">
-        <button class="top-btn" type="button" id="menuButton" aria-label="Menu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-
-        <div class="brand">
-          <h1>
-            Raja Kost
-            <img src="assets/icon/crown.png" alt="" aria-hidden="true" />
-          </h1>
-          <p>Kost Impian Anak UMM</p>
+    <div class="picker-modal" id="roomPicker" aria-hidden="true">
+      <div class="picker-panel">
+        <div class="picker-handle"></div>
+        <h3>Pilih Kamar</h3>
+        <p class="picker-sub">Tentukan tipe dan kode kamar sebelum lanjut ke pembayaran.</p>
+        <div class="picker-block">
+          <label>Tipe Kamar</label>
+          <div class="chip-set" id="pickerTypeChips"></div>
         </div>
-
-        <button class="top-btn chat" type="button" aria-label="Chat">
-          <span class="chat-dot"></span>
-        </button>
-      </header>
-
-      <section class="search-wrap reveal">
-        <label class="search">
-          <input
-            id="searchInput"
-            type="search"
-            placeholder="Cari kost..."
-            autocomplete="off"
-          />
-        </label>
-      </section>
-
-      <section class="block reveal">
-        <div class="block__header">
-          <h2>Kamar</h2>
-          <div class="chips" id="filterChips">
-            <button type="button" class="chip active" data-filter="all">Semua</button>
-            <button type="button" class="chip" data-filter="single_fan">Single Fan</button>
-            <button type="button" class="chip" data-filter="single_ac">Single AC</button>
-            <button type="button" class="chip" data-filter="deluxe">Deluxe</button>
-            <button type="button" class="chip" data-filter="favorites">Favorit</button>
-          </div>
+        <div class="picker-block">
+          <label>Kode Kamar</label>
+          <div class="chip-set" id="pickerCodeChips"></div>
         </div>
-        <div class="room-grid" id="roomGrid"></div>
-      </section>
-
-      <section class="block reveal">
-        <div class="block__header">
-          <h2>Layanan Tambahan</h2>
+        <div class="picker-actions">
+          <button type="button" class="btn ghost" id="pickerCancel">Batal</button>
+          <button type="button" class="btn primary" id="pickerConfirm" disabled>Konfirmasi</button>
         </div>
-        <div class="service-list" id="serviceList"></div>
-      </section>
+      </div>
+    </div>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <main class="app-shell">
+      <section id="appView"></section>
     </main>
 
     <script src="script.js"></script>
