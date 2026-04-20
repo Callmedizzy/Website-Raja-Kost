@@ -1,0 +1,672 @@
+:root {
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --secondary: #f59e0b;
+  --surface: #f8fafc;
+  --card: #ffffff;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --divider: #e2e8f0;
+  --single-fan: #10b981;
+  --single-ac: #3b82f6;
+  --deluxe: #8b5cf6;
+  --service: #f59e0b;
+  --laundry: #06b6d4;
+  --trash: #84cc16;
+  --cleaning: #f97316;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  color: var(--text-main);
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(37, 99, 235, 0.15), transparent 70%),
+    radial-gradient(1000px 600px at 90% 0%, rgba(245, 158, 11, 0.2), transparent 70%),
+    linear-gradient(165deg, #f6f8fc, #f8fafc 40%, #eef3fb);
+}
+
+.app {
+  width: min(1080px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.25rem 0 2.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.bg-decor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.bubble,
+.stripe {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+  background: rgba(141, 98, 98, 0.14);
+  filter: blur(0.3px);
+}
+
+.bubble-1 {
+  width: 140px;
+  height: 140px;
+  left: -58px;
+  top: -38px;
+}
+
+.bubble-2 {
+  width: 120px;
+  height: 120px;
+  left: -8px;
+  top: 150px;
+}
+
+.bubble-3 {
+  width: 95px;
+  height: 95px;
+  right: -16px;
+  top: 180px;
+}
+
+.bubble-4 {
+  width: 90px;
+  height: 90px;
+  left: -22px;
+  bottom: 188px;
+}
+
+.stripe-1 {
+  height: 58px;
+  left: clamp(280px, 35vw, 420px);
+  right: 26px;
+  top: 480px;
+  background: rgba(141, 98, 98, 0.16);
+}
+
+.stripe-2 {
+  height: 80px;
+  left: 26px;
+  right: 26px;
+  bottom: 60px;
+  background: rgba(141, 98, 98, 0.18);
+}
+
+.topbar {
+  background: var(--card);
+  border-radius: 1.1rem;
+  padding: 0.9rem;
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  align-items: center;
+  gap: 0.7rem;
+  box-shadow:
+    0 18px 28px -24px rgba(15, 23, 42, 0.6),
+    0 8px 12px -10px rgba(15, 23, 42, 0.22);
+}
+
+.top-btn {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 0.65rem;
+  background: #fff;
+  box-shadow: 0 6px 12px -9px rgba(15, 23, 42, 0.48);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.top-btn span {
+  display: block;
+  width: 17px;
+  height: 2px;
+  border-radius: 8px;
+  background: #1f2937;
+}
+
+.top-btn span + span {
+  margin-top: 3px;
+}
+
+.top-btn.chat {
+  position: relative;
+}
+
+.chat-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid #1f2937;
+  position: relative;
+}
+
+.chat-dot::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  bottom: -5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #1f2937;
+}
+
+.brand {
+  text-align: center;
+}
+
+.brand h1 {
+  margin: 0;
+  font-family: "Sora", "Segoe UI", sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.brand h1 img {
+  width: 22px;
+  height: 30px;
+  transform: rotate(-18deg) translateY(-8px);
+}
+
+.brand p {
+  margin: 0.1rem 0 0;
+  color: var(--text-sub);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.search-wrap {
+  margin-top: 0.9rem;
+}
+
+.search {
+  display: block;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 14px 22px -20px rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  padding: 0.95rem 1.15rem;
+  background: transparent;
+  color: var(--text-main);
+  font: 600 0.95rem/1.2 "Manrope", "Segoe UI", sans-serif;
+}
+
+.search input::placeholder {
+  color: #94a3b8;
+}
+
+.block {
+  margin-top: 1rem;
+  background: var(--card);
+  border-radius: 1rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 16px 28px -26px rgba(15, 23, 42, 0.5);
+  padding: 1rem;
+}
+
+.block__header h2 {
+  margin: 0;
+  font-family: "Sora", "Segoe UI", sans-serif;
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+}
+
+.chips {
+  margin-top: 0.65rem;
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.chips::-webkit-scrollbar {
+  height: 6px;
+}
+
+.chips::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9px;
+}
+
+.chip {
+  white-space: nowrap;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  padding: 0.42rem 0.78rem;
+  font: 700 0.76rem/1 "Manrope", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.chip.active {
+  border-color: rgba(37, 99, 235, 0.35);
+  color: var(--primary);
+  background: rgba(37, 99, 235, 0.14);
+}
+
+.room-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.room-card {
+  border-radius: 1rem;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #fff;
+  box-shadow: 0 16px 26px -27px rgba(15, 23, 42, 0.7);
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  min-height: 204px;
+  overflow: hidden;
+}
+
+.room-media {
+  height: 100%;
+}
+
+.room-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.room-content {
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-topline {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.room-type {
+  font: 800 0.64rem/1 "Manrope", "Segoe UI", sans-serif;
+  letter-spacing: 0.06em;
+  padding: 0.34rem 0.5rem;
+  border-radius: 0.45rem;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.room-type.single_fan {
+  color: var(--single-fan);
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.room-type.single_ac {
+  color: var(--single-ac);
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.room-type.deluxe {
+  color: var(--deluxe);
+  background: rgba(139, 92, 246, 0.16);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.fav-btn {
+  margin-left: auto;
+  border: 0;
+  border-radius: 0.45rem;
+  background: #f8fafc;
+  color: #64748b;
+  font: 700 0.65rem/1 "Manrope", "Segoe UI", sans-serif;
+  padding: 0.35rem 0.48rem;
+  cursor: pointer;
+}
+
+.fav-btn.active {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.room-name {
+  margin: 0.55rem 0 0.25rem;
+  font: 800 1rem/1.2 "Sora", "Segoe UI", sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.room-location {
+  margin: 0;
+  color: var(--text-sub);
+  font: 600 0.8rem/1.2 "Manrope", "Segoe UI", sans-serif;
+}
+
+.room-rate {
+  margin-top: 0.4rem;
+  color: #334155;
+  font: 700 0.75rem/1 "Manrope", "Segoe UI", sans-serif;
+}
+
+.room-bottom {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.room-price {
+  font: 800 0.95rem/1.2 "Sora", "Segoe UI", sans-serif;
+}
+
+.room-price.single_fan {
+  color: var(--single-fan);
+}
+
+.room-price.single_ac {
+  color: var(--single-ac);
+}
+
+.room-price.deluxe {
+  color: var(--deluxe);
+}
+
+.availability {
+  margin-left: auto;
+  border-radius: 0.45rem;
+  padding: 0.28rem 0.5rem;
+  font: 800 0.62rem/1 "Manrope", "Segoe UI", sans-serif;
+  border: 1px solid transparent;
+}
+
+.availability.ok {
+  color: #15803d;
+  background: rgba(22, 163, 74, 0.14);
+  border-color: rgba(22, 163, 74, 0.25);
+}
+
+.availability.no {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.room-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.9rem;
+  padding: 1rem;
+  text-align: center;
+  color: #64748b;
+  font: 700 0.86rem/1.3 "Manrope", "Segoe UI", sans-serif;
+}
+
+.service-list {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.service-card {
+  border-radius: 0.95rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  padding: 0.85rem;
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.service-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 0.8rem;
+  display: grid;
+  place-items: center;
+  font: 800 0.92rem/1 "Sora", "Segoe UI", sans-serif;
+}
+
+.service-icon.laundry {
+  color: var(--laundry);
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.25),
+    rgba(6, 182, 212, 0.12)
+  );
+}
+
+.service-icon.trash {
+  color: var(--trash);
+  background: linear-gradient(
+    135deg,
+    rgba(132, 204, 22, 0.25),
+    rgba(132, 204, 22, 0.12)
+  );
+}
+
+.service-icon.cleaning {
+  color: var(--cleaning);
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.25),
+    rgba(249, 115, 22, 0.12)
+  );
+}
+
+.service-info h3 {
+  margin: 0;
+  font: 700 0.93rem/1.2 "Sora", "Segoe UI", sans-serif;
+}
+
+.service-info p {
+  margin: 0.2rem 0 0;
+  color: var(--text-sub);
+  font: 600 0.77rem/1.2 "Manrope", "Segoe UI", sans-serif;
+}
+
+.service-buy {
+  text-align: right;
+}
+
+.service-price {
+  margin: 0;
+  color: var(--service);
+  font: 800 0.88rem/1 "Sora", "Segoe UI", sans-serif;
+}
+
+.service-unit {
+  margin: 0.2rem 0 0;
+  color: var(--text-sub);
+  font: 700 0.7rem/1 "Manrope", "Segoe UI", sans-serif;
+}
+
+.service-buy button {
+  margin-top: 0.36rem;
+  border: 0;
+  border-radius: 0.45rem;
+  padding: 0.34rem 0.56rem;
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+  font: 700 0.68rem/1 "Manrope", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.side-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  background: rgba(15, 23, 42, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.side-menu.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.side-menu__panel {
+  width: min(340px, 82vw);
+  height: 100%;
+  background: #fff;
+  border-radius: 0 1.3rem 1.3rem 0;
+  box-shadow: 10px 0 26px -18px rgba(15, 23, 42, 0.8);
+  transform: translateX(-105%);
+  transition: transform 0.25s ease;
+  padding: 1.15rem;
+}
+
+.side-menu.open .side-menu__panel {
+  transform: translateX(0);
+}
+
+.side-menu__header {
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--divider);
+}
+
+.side-menu__header img {
+  width: 44px;
+  height: 44px;
+  border-radius: 0.6rem;
+}
+
+.menu-label {
+  margin: 0;
+  color: #64748b;
+  font: 700 0.68rem/1 "Manrope", "Segoe UI", sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.side-menu__header h2 {
+  margin: 0.25rem 0 0;
+  font: 800 0.95rem/1.2 "Sora", "Segoe UI", sans-serif;
+}
+
+.side-menu__list {
+  margin-top: 0.88rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.side-menu__list button {
+  text-align: left;
+  border: 0;
+  background: #f8fafc;
+  border-radius: 0.72rem;
+  padding: 0.68rem 0.75rem;
+  color: #1e293b;
+  font: 700 0.8rem/1.2 "Manrope", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+
+.side-menu__list button.danger {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(10px) scale(0.992);
+  animation: reveal 0.45s ease forwards;
+}
+
+.app > .reveal:nth-of-type(1) {
+  animation-delay: 0.05s;
+}
+
+.app > .reveal:nth-of-type(2) {
+  animation-delay: 0.12s;
+}
+
+.app > .reveal:nth-of-type(3) {
+  animation-delay: 0.2s;
+}
+
+.app > .reveal:nth-of-type(4) {
+  animation-delay: 0.29s;
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (min-width: 840px) {
+  .room-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .app {
+    width: min(1080px, calc(100% - 1rem));
+    padding-top: 0.8rem;
+  }
+
+  .topbar {
+    border-radius: 0.95rem;
+  }
+
+  .room-card {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+
+  .room-media {
+    aspect-ratio: 16 / 10;
+  }
+
+  .room-content {
+    padding: 0.75rem;
+  }
+
+  .service-card {
+    grid-template-columns: 52px 1fr;
+  }
+
+  .service-buy {
+    grid-column: span 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stripe-1 {
+    left: 32px;
+    right: 32px;
+    top: 560px;
+  }
+}

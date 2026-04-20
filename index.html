@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Raja Kost | Web</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-decor" aria-hidden="true">
+      <span class="bubble bubble-1"></span>
+      <span class="bubble bubble-2"></span>
+      <span class="bubble bubble-3"></span>
+      <span class="bubble bubble-4"></span>
+      <span class="stripe stripe-1"></span>
+      <span class="stripe stripe-2"></span>
+    </div>
+
+    <aside class="side-menu" id="sideMenu" aria-hidden="true">
+      <div class="side-menu__panel">
+        <div class="side-menu__header">
+          <img src="assets/icon/app_icon.png" alt="Raja Kost Logo" />
+          <div>
+            <p class="menu-label">Akun</p>
+            <h2>Belum login</h2>
+          </div>
+        </div>
+        <nav class="side-menu__list">
+          <button type="button">Wishlist</button>
+          <button type="button">Riwayat Booking</button>
+          <button type="button">Pengaturan</button>
+          <button type="button">Bantuan & Tentang</button>
+          <button type="button" class="danger">Login</button>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="app">
+      <header class="topbar reveal">
+        <button class="top-btn" type="button" id="menuButton" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="brand">
+          <h1>
+            Raja Kost
+            <img src="assets/icon/crown.png" alt="" aria-hidden="true" />
+          </h1>
+          <p>Kost Impian Anak UMM</p>
+        </div>
+
+        <button class="top-btn chat" type="button" aria-label="Chat">
+          <span class="chat-dot"></span>
+        </button>
+      </header>
+
+      <section class="search-wrap reveal">
+        <label class="search">
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Cari kost..."
+            autocomplete="off"
+          />
+        </label>
+      </section>
+
+      <section class="block reveal">
+        <div class="block__header">
+          <h2>Kamar</h2>
+          <div class="chips" id="filterChips">
+            <button type="button" class="chip active" data-filter="all">Semua</button>
+            <button type="button" class="chip" data-filter="single_fan">Single Fan</button>
+            <button type="button" class="chip" data-filter="single_ac">Single AC</button>
+            <button type="button" class="chip" data-filter="deluxe">Deluxe</button>
+            <button type="button" class="chip" data-filter="favorites">Favorit</button>
+          </div>
+        </div>
+        <div class="room-grid" id="roomGrid"></div>
+      </section>
+
+      <section class="block reveal">
+        <div class="block__header">
+          <h2>Layanan Tambahan</h2>
+        </div>
+        <div class="service-list" id="serviceList"></div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
