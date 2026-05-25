@@ -135,125 +135,267 @@ textarea {
 }
 
 .appbar {
-  background: var(--card);
-  border-radius: 1.1rem;
-  padding: 0.9rem;
+  position: sticky;
+  top: 0.85rem;
+  z-index: 6;
+  min-height: 88px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 999px;
+  padding: 0.76rem 0.9rem;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(220px, 320px) auto auto;
   align-items: center;
-  gap: 0.7rem;
+  gap: 1rem;
   box-shadow:
-    0 18px 28px -24px rgba(15, 23, 42, 0.6),
-    0 8px 12px -10px rgba(15, 23, 42, 0.22);
+    0 24px 42px -28px rgba(15, 23, 42, 0.72),
+    0 1px 0 rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
-.bar-side {
+.nav-left,
+.nav-right,
+.nav-links {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  min-width: 42px;
 }
 
-.bar-side.right {
+.nav-left {
+  justify-self: start;
+  gap: 0.58rem;
+  min-width: 0;
+}
+
+.nav-right {
+  justify-self: end;
   justify-content: flex-end;
+  gap: 0.65rem;
 }
 
-.bar-placeholder {
-  display: inline-block;
-  width: 42px;
-  height: 42px;
-}
-
-.appbar-title {
-  text-align: center;
-}
-
-.appbar-title h1 {
-  margin: 0;
-  font-family: "Sora", "Segoe UI", sans-serif;
-  font-weight: 800;
-  font-size: clamp(1.14rem, 2.6vw, 1.48rem);
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 0.24rem;
-}
-
-.appbar-title h1 img {
-  width: 20px;
-  height: 28px;
-  transform: rotate(-18deg) translateY(-8px);
-}
-
-.appbar-title p {
-  margin: 0.12rem 0 0;
-  color: var(--text-sub);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.icon-btn {
-  width: 42px;
-  height: 42px;
+.nav-brand,
+.nav-link,
+.nav-cta,
+.nav-login,
+.nav-back {
   border: 0;
-  border-radius: 0.68rem;
-  background: #fff;
-  box-shadow: 0 6px 12px -9px rgba(15, 23, 42, 0.48);
-  display: grid;
-  place-items: center;
   cursor: pointer;
-  color: var(--text-main);
-  position: relative;
 }
 
-.icon-btn.menu span {
-  display: block;
-  width: 17px;
-  height: 2px;
-  border-radius: 8px;
-  background: #1f2937;
-}
-
-.icon-btn.menu span + span {
-  margin-top: 3px;
-}
-
-.icon-btn.chat .dot {
-  width: 14px;
-  height: 14px;
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.68rem;
+  min-width: 0;
   border-radius: 999px;
-  border: 2px solid #1f2937;
-  position: relative;
+  background: transparent;
+  color: #0f172a;
+  padding: 0.34rem 0.7rem 0.34rem 0.34rem;
+  font: 800 1.04rem/1 "Sora", "Segoe UI", sans-serif;
+  white-space: nowrap;
 }
 
-.icon-btn.chat .dot::after {
+.nav-brand img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  box-shadow: 0 8px 14px -12px rgba(15, 23, 42, 0.7);
+}
+
+.nav-brand span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-search {
+  position: relative;
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
+.nav-search::before,
+.nav-search::after {
   content: "";
   position: absolute;
-  right: -4px;
-  bottom: -5px;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: #1f2937;
+  pointer-events: none;
 }
 
-.chat-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 16px;
-  height: 16px;
+.nav-search::before {
+  left: 1.08rem;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  border: 2px solid #64748b;
   border-radius: 999px;
-  background: #ef4444;
-  color: #fff;
-  font-size: 0.62rem;
+  transform: translateY(-58%);
+}
+
+.nav-search::after {
+  left: 1.92rem;
+  top: calc(50% + 6px);
+  width: 8px;
+  height: 2px;
+  border-radius: 999px;
+  background: #64748b;
+  transform: rotate(45deg);
+  transform-origin: left center;
+}
+
+.nav-search input {
+  width: 100%;
+  height: 48px;
+  border: 1px solid rgba(203, 213, 225, 0.82);
+  border-radius: 999px;
+  outline: 0;
+  background: rgba(248, 250, 252, 0.92);
+  color: var(--text-main);
+  padding: 0 1rem 0 2.8rem;
+  font: 700 0.94rem/1 "Manrope", "Segoe UI", sans-serif;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    0 12px 22px -22px rgba(15, 23, 42, 0.65);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.nav-search input::placeholder {
+  color: #94a3b8;
+}
+
+.nav-search input:focus {
+  border-color: rgba(37, 99, 235, 0.58);
+  background: #fff;
+  box-shadow:
+    0 0 0 4px rgba(37, 99, 235, 0.09),
+    0 16px 28px -24px rgba(15, 23, 42, 0.72);
+}
+
+.nav-links {
+  justify-self: center;
+  gap: 0.82rem;
+  margin-left: 0;
+  padding: 0.28rem;
+  border-radius: 999px;
+  background: rgba(241, 245, 249, 0.46);
+}
+
+.nav-link {
+  border-radius: 999px;
+  background: transparent;
+  color: #334155;
+  padding: 0.72rem 0.82rem;
+  font: 700 1rem/1 "Manrope", "Segoe UI", sans-serif;
+  white-space: nowrap;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.nav-link:hover,
+.nav-link:focus-visible,
+.nav-brand:hover,
+.nav-brand:focus-visible {
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--primary-dark);
+  outline: none;
+  box-shadow: 0 8px 16px -14px rgba(15, 23, 42, 0.55);
+}
+
+.nav-login,
+.nav-back {
+  position: relative;
   display: grid;
   place-items: center;
-  padding: 0 4px;
+  flex: 0 0 auto;
 }
 
-.icon-btn.back::before {
+.nav-cta {
+  min-height: 48px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  padding: 0 1.16rem;
+  font: 800 0.94rem/1 "Manrope", "Segoe UI", sans-serif;
+  white-space: nowrap;
+  box-shadow: 0 16px 24px -18px rgba(37, 99, 235, 0.9);
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.nav-cta:hover,
+.nav-cta:focus-visible {
+  background: var(--primary-dark);
+  outline: none;
+  transform: translateY(-1px);
+  box-shadow: 0 18px 28px -18px rgba(37, 99, 235, 0.95);
+}
+
+.nav-login {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: #172554;
+  color: #fff;
+  box-shadow: 0 12px 20px -15px rgba(15, 23, 42, 0.8);
+}
+
+.nav-login.is-logged-in {
+  background: var(--primary);
+}
+
+.nav-login span,
+.nav-login span::before,
+.nav-login span::after {
+  display: block;
+  border-radius: 999px;
+}
+
+.nav-login span {
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+
+.nav-login span::before,
+.nav-login span::after {
+  content: "";
+  position: absolute;
+}
+
+.nav-login span::before {
+  top: 0;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+
+.nav-login span::after {
+  left: 2px;
+  bottom: 1px;
+  width: 14px;
+  height: 8px;
+  border: 2px solid currentColor;
+  border-bottom: 0;
+}
+
+.nav-back {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 8px 14px -13px rgba(15, 23, 42, 0.65);
+}
+
+.nav-back::before {
   content: "";
   width: 10px;
   height: 10px;
@@ -265,6 +407,11 @@ textarea {
 
 .top-gap {
   margin-top: 0.95rem;
+}
+
+#products,
+#gallery {
+  scroll-margin-top: 7rem;
 }
 
 .search {
@@ -287,6 +434,104 @@ textarea {
 
 .search input::placeholder {
   color: var(--text-dim);
+}
+
+.gallery-section {
+  width: 100vw;
+  margin: 1.5rem calc(50% - 50vw) 0;
+  padding: 4.8rem 0 4.4rem;
+  background: #f5f0e8;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(148, 115, 76, 0.12);
+  overflow: hidden;
+}
+
+.gallery-inner {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.gallery-title {
+  margin: 0;
+  color: #1d1a16;
+  font-family: "Sora", Georgia, serif;
+  font-size: 5.5rem;
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
+.gallery-title span {
+  display: block;
+}
+
+.gallery-fan {
+  position: relative;
+  width: min(900px, 100%);
+  height: 392px;
+  margin: 3.1rem auto 0;
+}
+
+.gallery-card {
+  position: absolute;
+  left: 50%;
+  top: 36px;
+  width: 230px;
+  height: 310px;
+  border: 6px solid rgba(255, 255, 255, 0.82);
+  border-radius: 24px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 24px 46px -28px rgba(49, 39, 24, 0.72);
+  transform: var(--card-transform);
+  transform-origin: 50% 82%;
+  transition:
+    transform 300ms ease,
+    box-shadow 300ms ease;
+}
+
+.gallery-card:hover,
+.gallery-card:focus-within {
+  box-shadow: 0 30px 58px -30px rgba(49, 39, 24, 0.82);
+  transform: var(--card-hover-transform);
+}
+
+.gallery-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-subtitle {
+  margin: 0.5rem 0 0;
+  color: #6f6251;
+  font: 700 1rem/1.45 "Manrope", "Segoe UI", sans-serif;
+}
+
+.gallery-cta {
+  margin-top: 1.2rem;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: #1d1a16;
+  color: #fff;
+  padding: 0 1.35rem;
+  font: 800 0.94rem/1 "Manrope", "Segoe UI", sans-serif;
+  cursor: pointer;
+  box-shadow: 0 18px 30px -22px rgba(29, 26, 22, 0.82);
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.gallery-cta:hover,
+.gallery-cta:focus-visible {
+  background: var(--primary-dark);
+  outline: none;
+  transform: translateY(-1px);
+  box-shadow: 0 20px 34px -22px rgba(37, 99, 235, 0.86);
 }
 
 .block {
@@ -1273,10 +1518,165 @@ textarea {
   }
 }
 
+@media (max-width: 1080px) {
+  .appbar {
+    grid-template-columns: auto minmax(220px, 1fr) auto;
+    grid-template-areas:
+      "brand search actions"
+      "links links links";
+    border-radius: 1.35rem;
+  }
+
+  .nav-left {
+    grid-area: brand;
+  }
+
+  .nav-search {
+    grid-area: search;
+  }
+
+  .nav-links {
+    grid-area: links;
+    justify-self: center;
+  }
+
+  .nav-right {
+    grid-area: actions;
+  }
+
+  .gallery-title {
+    font-size: 4.35rem;
+  }
+
+  #products,
+  #gallery {
+    scroll-margin-top: 9rem;
+  }
+}
+
 @media (max-width: 760px) {
   .app-shell {
     width: min(1120px, calc(100% - 1rem));
-    padding-top: 0.75rem;
+    padding-top: 0.55rem;
+  }
+
+  .appbar {
+    top: 0.5rem;
+    min-height: 0;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "brand actions"
+      "search search"
+      "links links";
+    gap: 0.56rem;
+    border-radius: 1.35rem;
+    padding: 0.55rem;
+  }
+
+  .nav-left {
+    grid-area: brand;
+  }
+
+  .nav-search {
+    grid-area: search;
+  }
+
+  .nav-search input {
+    height: 44px;
+    font-size: 0.88rem;
+  }
+
+  .nav-right {
+    grid-area: actions;
+    gap: 0.42rem;
+  }
+
+  .nav-links {
+    grid-area: links;
+    width: 100%;
+    justify-content: center;
+    gap: 0.36rem;
+    margin-left: 0;
+    overflow-x: auto;
+  }
+
+  .nav-link {
+    flex: 0 0 auto;
+    padding: 0.58rem 0.78rem;
+    font-size: 0.88rem;
+  }
+
+  .nav-brand {
+    gap: 0.45rem;
+    padding-right: 0.42rem;
+    font-size: 0.86rem;
+  }
+
+  .nav-brand img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nav-cta {
+    min-height: 42px;
+    padding: 0 0.78rem;
+    font-size: 0.78rem;
+  }
+
+  .nav-login {
+    width: 42px;
+    height: 42px;
+  }
+
+  #products,
+  #gallery {
+    scroll-margin-top: 11.2rem;
+  }
+
+  .gallery-section {
+    margin-top: 1rem;
+    padding: 3.4rem 0 3.2rem;
+  }
+
+  .gallery-inner {
+    width: min(100%, calc(100% - 1rem));
+  }
+
+  .gallery-title {
+    font-size: 3.05rem;
+    line-height: 0.96;
+  }
+
+  .gallery-fan {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    height: auto;
+    margin-top: 1.7rem;
+    padding: 1rem 0.25rem 1.45rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .gallery-card {
+    position: relative;
+    left: auto;
+    top: auto;
+    flex: 0 0 72%;
+    max-width: 290px;
+    height: 340px;
+    transform: none;
+    scroll-snap-align: center;
+  }
+
+  .gallery-card:hover,
+  .gallery-card:focus-within {
+    transform: translateY(-6px);
+  }
+
+  .gallery-subtitle {
+    margin-top: 0.45rem;
+    font-size: 0.94rem;
   }
 
   .room-card {
@@ -1312,5 +1712,16 @@ textarea {
     left: 28px;
     right: 28px;
     top: 560px;
+  }
+}
+
+@media (max-width: 420px) {
+  .gallery-title {
+    font-size: 2.45rem;
+  }
+
+  .gallery-card {
+    flex-basis: 82%;
+    height: 300px;
   }
 }

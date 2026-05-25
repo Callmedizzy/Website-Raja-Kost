@@ -67,6 +67,54 @@ const SERVICES = [
   },
 ];
 
+const GALLERY_PHOTOS = [
+  {
+    src: "assets/images/kamar-single-fan.jpg",
+    alt: "Kamar Single Fan Raja Kost",
+    rotate: "-20deg",
+    x: "-330px",
+    y: "34px",
+    scale: "0.9",
+    z: 1,
+  },
+  {
+    src: "assets/images/kamar-ac.jpg",
+    alt: "Kamar Single AC Raja Kost",
+    rotate: "-10deg",
+    x: "-170px",
+    y: "10px",
+    scale: "0.98",
+    z: 2,
+  },
+  {
+    src: "assets/images/kamar-deluxe.jpg",
+    alt: "Kamar Deluxe Raja Kost",
+    rotate: "0deg",
+    x: "0px",
+    y: "-20px",
+    scale: "1.12",
+    z: 5,
+  },
+  {
+    src: "assets/images/kamar-ac.jpg",
+    alt: "Area fasilitas Raja Kost",
+    rotate: "10deg",
+    x: "170px",
+    y: "10px",
+    scale: "0.98",
+    z: 2,
+  },
+  {
+    src: "assets/images/kamar-single-fan.jpg",
+    alt: "Fasilitas kost Raja Kost",
+    rotate: "20deg",
+    x: "330px",
+    y: "34px",
+    scale: "0.9",
+    z: 1,
+  },
+];
+
 const ROOM_CODES_BY_TYPE = {
   single_fan: ["1C", "2C", "3C", "4C", "5C"],
   single_ac: ["1B", "2B", "3B", "4B", "5B"],
@@ -126,6 +174,7 @@ const appState = {
   loginError: "",
   registerError: "",
   redirectAfterLogin: null,
+  pendingScrollTarget: "",
   picker: {
     open: false,
     serviceId: "",
@@ -400,6 +449,12 @@ function renderApp() {
   } else {
     appView.innerHTML = renderHomePage();
   }
+
+  if (appState.pendingScrollTarget && requestedPath === "/home") {
+    const target = appState.pendingScrollTarget;
+    appState.pendingScrollTarget = "";
+    requestAnimationFrame(() => scrollToHomeSection(target));
+  }
 }
 
 function renderAppBar({
@@ -411,38 +466,37 @@ function renderAppBar({
   showCrown = false,
   badge = 0,
 }) {
-  const left = `
-    <div class="bar-side">
-      ${showMenu ? '<button type="button" class="icon-btn menu" data-action="open-menu" aria-label="Menu"><span></span><span></span><span></span></button>' : ""}
-      ${showBackButton ? '<button type="button" class="icon-btn back" data-action="go-back" aria-label="Kembali"></button>' : ""}
-      ${!showMenu && !showBackButton ? '<span class="bar-placeholder"></span>' : ""}
-    </div>
-  `;
-
-  const right = `
-    <div class="bar-side right">
-      ${
-        showChatButton
-          ? `<button type="button" class="icon-btn chat" data-action="chat-shortcut" aria-label="Chat">
-               <span class="dot"></span>
-               ${badge > 0 ? `<strong class="chat-badge">${badge}</strong>` : ""}
-             </button>`
-          : '<span class="bar-placeholder"></span>'
-      }
-    </div>
-  `;
+  const user = currentUser();
+  const accountRoute = user ? "/settings" : "/login";
+  const accountLabel = user ? "Akun" : "Login";
 
   return `
-    <header class="appbar">
-      ${left}
-      <div class="appbar-title">
-        <h1>
-          ${escapeHtml(title)}
-          ${showCrown ? '<img src="assets/icon/crown.png" alt="" aria-hidden="true" />' : ""}
-        </h1>
-        ${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : ""}
+    <header class="appbar" aria-label="Navigasi utama">
+      <div class="nav-left">
+        ${
+          showBackButton
+            ? '<button type="button" class="nav-back" data-action="go-back" aria-label="Kembali"></button>'
+            : ""
+        }
+        <button type="button" class="nav-brand" data-action="go-route" data-route="/home" aria-label="RAJA kost">
+          <img src="assets/icon/app_icon.png" alt="" aria-hidden="true" />
+          <span>RAJA kost</span>
+        </button>
       </div>
-      ${right}
+      <label class="nav-search" aria-label="Cari kost">
+        <input id="navSearch" type="search" placeholder="Cari kost..." value="${escapeHtml(appState.homeSearch)}" />
+      </label>
+      <nav class="nav-links" aria-label="Menu utama">
+        <button type="button" class="nav-link" data-action="home-section" data-section="products">Product</button>
+        <button type="button" class="nav-link" data-action="home-section" data-section="gallery">Gallery</button>
+        <button type="button" class="nav-link" data-action="go-route" data-route="/help">About</button>
+      </nav>
+      <div class="nav-right">
+        <button type="button" class="nav-cta" data-action="home-section" data-section="products">Sewa Sekarang</button>
+        <button type="button" class="nav-login ${user ? "is-logged-in" : ""}" data-action="go-route" data-route="${accountRoute}" aria-label="${accountLabel}">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
     </header>
   `;
 }
@@ -471,14 +525,7 @@ function renderHomePage() {
         showChatButton: true,
         showCrown: true,
       })}
-      <section class="top-gap">
-        <label class="search">
-          <input id="homeSearch" type="search" placeholder="Cari kost..." value="${escapeHtml(
-            appState.homeSearch
-          )}" />
-        </label>
-      </section>
-      <section class="block">
+      <section class="block" id="products">
         <div class="block-head">
           <h2>Kamar</h2>
         </div>
@@ -497,6 +544,7 @@ function renderHomePage() {
           }
         </div>
       </section>
+      ${renderGallerySection()}
       <section class="block">
         <div class="block-head">
           <h2>Layanan Tambahan</h2>
@@ -505,6 +553,33 @@ function renderHomePage() {
           ${SERVICES.map((service) => renderServiceCard(service)).join("")}
         </div>
       </section>
+    </section>
+  `;
+}
+
+function renderGallerySection() {
+  return `
+    <section class="gallery-section py-16 md:py-20" id="gallery" aria-label="Gallery kamar dan fasilitas">
+      <div class="gallery-inner mx-auto px-4 text-center">
+        <h2 class="gallery-title text-center font-black tracking-normal">
+          <span>OUR ROOMS</span>
+          <span>&amp; FACILITIES</span>
+        </h2>
+        <div class="gallery-fan mx-auto" aria-label="Foto kamar dan fasilitas Raja Kost">
+          ${GALLERY_PHOTOS.map(
+            (photo) => `
+              <article
+                class="gallery-card overflow-hidden shadow-xl transition-transform duration-300 ease-in-out"
+                style="--card-transform: translateX(calc(-50% + ${photo.x})) translateY(${photo.y}) rotate(${photo.rotate}) scale(${photo.scale}); --card-hover-transform: translateX(calc(-50% + ${photo.x})) translateY(calc(${photo.y} - 10px)) rotate(0deg) scale(${photo.scale}); z-index: ${photo.z};"
+              >
+                <img src="${photo.src}" alt="${escapeHtml(photo.alt)}" loading="lazy" />
+              </article>
+            `
+          ).join("")}
+        </div>
+        <p class="gallery-subtitle">Lihat semua foto fasilitas kost kami</p>
+        <button type="button" class="gallery-cta" data-action="home-section" data-section="gallery">Lihat Gallery</button>
+      </div>
     </section>
   `;
 }
@@ -1693,6 +1768,14 @@ function scrollChatToBottom() {
   }
 }
 
+function scrollToHomeSection(section) {
+  const targetId = section === "gallery" ? "gallery" : "products";
+  const target = document.getElementById(targetId);
+  if (target) {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
 function onClick(event) {
   const target = event.target.closest("[data-action]");
   if (!target) return;
@@ -1717,6 +1800,17 @@ function onClick(event) {
   if (action === "go-route") {
     const route = target.dataset.route || "/home";
     go(route);
+    return;
+  }
+
+  if (action === "home-section") {
+    const section = target.dataset.section || "products";
+    if (parseHash().path === "/home") {
+      scrollToHomeSection(section);
+    } else {
+      appState.pendingScrollTarget = section;
+      go("/home");
+    }
     return;
   }
 
@@ -1935,11 +2029,12 @@ function onClick(event) {
 }
 
 function onInput(event) {
-  if (event.target.id === "homeSearch") {
+  if (event.target.id === "homeSearch" || event.target.id === "navSearch") {
+    const inputId = event.target.id;
     const cursor = event.target.selectionStart ?? event.target.value.length;
     appState.homeSearch = event.target.value;
     renderApp();
-    const input = document.getElementById("homeSearch");
+    const input = document.getElementById(inputId);
     if (input) {
       input.focus();
       input.setSelectionRange(cursor, cursor);
