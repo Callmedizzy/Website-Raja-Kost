@@ -121,9 +121,9 @@ const GALLERY_PHOTOS = [
 ];
 
 const ROOM_CODES_BY_TYPE = {
-  single_fan: ["1C", "2C", "3C", "4C", "5C"],
-  single_ac: ["1B", "2B", "3B", "4B", "5B"],
-  deluxe: ["1A", "2A", "3A"],
+  single_fan: ["A-101", "A-102", "A-103", "A-104", "A-105", "A-106"],
+  single_ac: ["B-201", "B-202", "B-203", "B-204", "B-205", "B-206"],
+  deluxe: ["C-301", "C-302", "C-303", "C-304", "C-305", "C-306"],
 };
 
 const TYPE_LABEL = {
@@ -189,6 +189,7 @@ const appState = {
   adminNewRoom: false,
   adminRoomFormOpen: false,
   adminEditingRoomId: "",
+  adminRoomSearch: "",
   adminPhotoPreview: "",
   adminHistoryRoom: "all",
   adminReportFilter: "all",
@@ -217,22 +218,36 @@ const pickerCodeChips = document.getElementById("pickerCodeChips");
 const pickerCancel = document.getElementById("pickerCancel");
 const pickerConfirm = document.getElementById("pickerConfirm");
 
-function createDefaultStore() {
-  const rooms = [];
-  Object.entries(ROOM_CODES_BY_TYPE).forEach(([type, codes]) => {
+function defaultFloorForRoomCode(code) {
+  const value = String(code || "").toUpperCase();
+  if (value.startsWith("A-")) return "Lantai 1";
+  if (value.startsWith("B-")) return "Lantai 2";
+  if (value.startsWith("C-")) return "Lantai 3";
+  return "Lantai 1";
+}
+
+function defaultAvailabilityForCode(code) {
+  const occupiedCodes = new Set(["A-102", "A-105", "B-202", "B-205", "C-303", "C-306"]);
+  return !occupiedCodes.has(String(code || "").toUpperCase());
+}
+
+function createDefaultRooms() {
+  return Object.entries(ROOM_CODES_BY_TYPE).flatMap(([type, codes]) => {
     const meta = KOSTS.find((item) => item.type === type) || KOSTS[0];
-    codes.forEach((code) => {
-      rooms.push({
-        id: uid("room"),
-        code,
-        type,
-        price: meta.price,
-        floor: code.startsWith("1") || code.startsWith("2") ? "Lantai 1" : "Lantai 2",
-        image: meta.image,
-        is_available: true,
-      });
-    });
+    return codes.map((code) => ({
+      id: `room_${code.toLowerCase().replace(/[^a-z0-9]/g, "_")}`,
+      code,
+      type,
+      price: meta.price,
+      floor: defaultFloorForRoomCode(code),
+      image: meta.image,
+      is_available: defaultAvailabilityForCode(code),
+    }));
   });
+}
+
+function createDefaultStore() {
+  const rooms = createDefaultRooms();
 
   return {
     users: [
@@ -304,6 +319,11 @@ function loadStore() {
       merged.users.push(fallback.users[1]);
     }
 
+    const hasLegacyRoomCodes = merged.rooms.some((room) => /^[1-5][ABC]$/i.test(String(room.code || "")));
+    if (hasLegacyRoomCodes) {
+      merged.rooms = createDefaultRooms();
+    }
+
     merged.users = merged.users.map((user) => ({
       ...user,
       name: user.name || String(user.email || "User").split("@")[0],
@@ -319,7 +339,7 @@ function loadStore() {
         code: String(room.code || "").toUpperCase(),
         type: room.type || meta.type,
         price: Number(room.price || meta.price),
-        floor: room.floor || meta.floor || "Lantai 1",
+        floor: room.floor || defaultFloorForRoomCode(room.code) || meta.floor || "Lantai 1",
         image: room.image || meta.image,
         is_available: typeof room.is_available === "boolean" ? room.is_available : true,
       };
@@ -1162,25 +1182,18 @@ function renderSettingsPage() {
         showMenu: true,
         showBackButton: true,
       })}
-      <section class="panel-stack">
-        <section class="panel">
+      <section class="panel-stack account-stack">
+        <section class="panel account-panel">
           <h3>Akun</h3>
-          <p class="subtle">Email</p>
-          <p>${escapeHtml(user?.email || "Belum login")}</p>
+          <p class="subtle account-label">Email</p>
+          <p class="account-email">${escapeHtml(user?.email || "Belum login")}</p>
           <div class="btn-row">
             ${
               user
                 ? '<button type="button" class="btn ghost" data-action="logout">Logout</button>'
                 : '<button type="button" class="btn primary" data-action="go-route" data-route="/login">Login</button>'
             }
-            <button type="button" class="btn warn" data-action="delete-account">Hapus Akun</button>
-          </div>
-        </section>
-        <section class="panel">
-          <h3>Lainnya</h3>
-          <div class="btn-row">
-            <button type="button" class="btn muted" data-action="go-route" data-route="/location-lab">Eksperimen Lokasi</button>
-            <button type="button" class="btn muted" data-action="go-route" data-route="/help">Bantuan & Tentang</button>
+            ${user ? '<button type="button" class="btn warn" data-action="delete-account">Hapus Akun</button>' : ""}
           </div>
         </section>
       </section>
@@ -1399,15 +1412,18 @@ function adminHistoryRows() {
 function renderAdminRoomForm(editing) {
   const selectedType = editing?.type || appState.adminRoomType || "single_fan";
   const selectedPrice = Number(editing?.price || typePrice(selectedType) || 0);
-  const image = appState.adminPhotoPreview || editing?.image || typeImage(selectedType);
 
   return `
     <form class="admin-room-form" data-form="admin-room">
       <input type="hidden" name="roomId" value="${escapeHtml(editing?.id || "")}" />
+      <div class="admin-form-head">
+        <h3>${editing ? "Edit Kamar" : "Tambah Kamar"}</h3>
+        <p>${editing ? "Perbarui data kamar yang dipilih." : "Isi data kamar baru untuk ditambahkan ke tabel."}</p>
+      </div>
       <div class="form-grid">
         <div class="field">
           <label>Kode Kamar</label>
-          <input type="text" name="code" value="${escapeHtml(editing?.code || "")}" placeholder="mis. 1A" required />
+          <input type="text" name="code" value="${escapeHtml(editing?.code || "")}" placeholder="mis. A-107" required />
         </div>
         <div class="field">
           <label>Tipe</label>
@@ -1431,20 +1447,8 @@ function renderAdminRoomForm(editing) {
             <option value="occupied" ${editing?.is_available === false ? "selected" : ""}>Terisi</option>
           </select>
         </div>
-        <div class="field">
-          <label>Label Lantai</label>
-          <input type="text" name="floor" value="${escapeHtml(editing?.floor || "Lantai 1")}" required />
-        </div>
-        <div class="field">
-          <label>Upload Foto Kost</label>
-          <input type="file" name="photo" accept="image/*" data-action="admin-photo-preview" />
-        </div>
       </div>
-      <div class="upload-preview">
-        <img src="${image}" alt="Preview foto kamar" />
-        <span>${editing ? "Preview foto saat ini" : "Preview lokal"}</span>
-      </div>
-      <div class="btn-row">
+      <div class="btn-row admin-form-actions">
         <button type="submit" class="btn primary">${editing ? "Simpan Perubahan" : "Tambah Kamar"}</button>
         <button type="button" class="btn ghost" data-action="admin-room-form-cancel">Batal</button>
       </div>
@@ -1454,8 +1458,8 @@ function renderAdminRoomForm(editing) {
 
 function renderAdminRoomTable(rows) {
   return `
-    <div class="table-wrap">
-      <table class="admin-table">
+    <div class="table-wrap admin-room-table-wrap">
+      <table class="admin-table admin-room-table">
         <thead>
           <tr>
             <th>No</th>
@@ -1474,18 +1478,16 @@ function renderAdminRoomTable(rows) {
                     (room, index) => `
                       <tr>
                         <td>${index + 1}</td>
-                        <td><strong>${escapeHtml(room.code)}</strong><span class="table-sub">${escapeHtml(
-                          room.floor || "-"
-                        )}</span></td>
+                        <td><strong>${escapeHtml(room.code)}</strong></td>
                         <td>${escapeHtml(TYPE_LABEL[room.type] || room.type || "-")}</td>
-                        <td>${formatRupiah(room.price || typePrice(room.type))}</td>
+                        <td>${formatRupiah(room.price || typePrice(room.type)).replace("Rp", "Rp ")}</td>
                         <td><span class="room-status-badge ${room.is_available ? "available" : "occupied"}">${
                           room.is_available ? "Tersedia" : "Terisi"
                         }</span></td>
                         <td>
                           <div class="table-actions">
-                            <button type="button" class="btn muted" data-action="edit-room" data-room-id="${room.id}">Edit</button>
-                            <button type="button" class="btn warn" data-action="delete-room" data-room-id="${room.id}">Hapus</button>
+                            <button type="button" class="btn muted admin-edit-btn" data-action="edit-room" data-room-id="${room.id}">Edit</button>
+                            <button type="button" class="btn warn admin-delete-btn" data-action="delete-room" data-room-id="${room.id}">Hapus</button>
                           </div>
                         </td>
                       </tr>
@@ -1608,10 +1610,14 @@ function renderAdminAssignmentPanel() {
 }
 
 function renderAdminPage() {
-  const roomRows = [...store.rooms].sort((a, b) => a.code.localeCompare(b.code));
-  const bookings = [...store.bookings].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  const search = appState.adminRoomSearch.trim().toLowerCase();
+  const roomRows = store.rooms
+    .filter((room) => {
+      if (!search) return true;
+      const typeLabel = TYPE_LABEL[room.type] || room.type || "";
+      return `${room.code} ${typeLabel}`.toLowerCase().includes(search);
+    })
+    .sort((a, b) => a.code.localeCompare(b.code));
   const editing = store.rooms.find((room) => room.id === appState.adminEditingRoomId) || null;
 
   return `
@@ -1621,30 +1627,27 @@ function renderAdminPage() {
         showMenu: true,
         showBackButton: true,
       })}
-      <section class="panel-stack">
-        <section class="panel admin-panel">
-          <div class="block-head">
-            <div>
-              <p class="eyebrow">ADMIN CONTROL PANEL</p>
-              <h3>Manajemen Data Kamar</h3>
-            </div>
-            <button type="button" class="btn primary add-room-btn" data-action="open-admin-room-form">+ Tambah Kamar</button>
+      <section class="admin-dashboard">
+        <section class="admin-room-card">
+          <div class="admin-room-header">
+            <h1>MANAJEMEN DATA KAMAR</h1>
+            <button type="button" class="btn primary add-room-btn admin-add-btn" data-action="open-admin-room-form">+ Tambah Kamar</button>
+          </div>
+          <div class="admin-room-tools">
+            <label class="admin-room-search" for="adminRoomSearch">
+              <span class="sr-only">Cari Kamar</span>
+              <input
+                id="adminRoomSearch"
+                type="search"
+                value="${escapeHtml(appState.adminRoomSearch)}"
+                placeholder="Cari Kamar..."
+                autocomplete="off"
+              />
+            </label>
           </div>
           ${appState.adminRoomFormOpen || editing ? renderAdminRoomForm(editing) : ""}
           ${renderAdminRoomTable(roomRows)}
         </section>
-
-        <section class="panel admin-panel">
-          <div class="block-head">
-            <div>
-              <p class="eyebrow">BOOKING</p>
-              <h3>Data Booking</h3>
-            </div>
-          </div>
-          ${renderAdminBookingTable(bookings)}
-        </section>
-
-        ${renderAdminAssignmentPanel()}
       </section>
     </section>
   `;
@@ -2522,6 +2525,17 @@ function onInput(event) {
       input.setSelectionRange(cursor, cursor);
     }
   }
+
+  if (event.target.id === "adminRoomSearch") {
+    const cursor = event.target.selectionStart ?? event.target.value.length;
+    appState.adminRoomSearch = event.target.value;
+    renderApp();
+    const input = document.getElementById("adminRoomSearch");
+    if (input) {
+      input.focus();
+      input.setSelectionRange(cursor, cursor);
+    }
+  }
 }
 
 function onChange(event) {
@@ -2706,14 +2720,14 @@ async function onSubmit(event) {
     const code = String(formData.get("code") || "").trim().toUpperCase();
     const type = String(formData.get("type") || "").trim();
     const price = Number(formData.get("price") || 0);
-    const floor = String(formData.get("floor") || "").trim();
+    const floor = String(formData.get("floor") || "").trim() || defaultFloorForRoomCode(code);
     const available = String(formData.get("status") || "available") === "available";
     const photoFile = formData.get("photo");
     const uploadedImage = await readFileAsDataURL(photoFile);
     const editing = store.rooms.find((room) => room.id === roomId) || null;
 
-    if (!code || !type || !price || !floor) {
-      toast("Isi kode, tipe, harga, dan lantai kamar.");
+    if (!code || !type || !price) {
+      toast("Isi kode kamar, tipe, harga, dan status.");
       return;
     }
 

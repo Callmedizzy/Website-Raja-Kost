@@ -1705,6 +1705,50 @@ textarea {
   margin-top: 1rem;
 }
 
+.account-stack {
+  margin-top: 0.85rem;
+}
+
+.account-panel {
+  padding: 1.15rem;
+}
+
+.account-label {
+  margin: 0.58rem 0 0.2rem;
+}
+
+.account-email {
+  margin: 0;
+  color: #0b0b0b;
+  font-weight: 800;
+}
+
+.admin-dashboard {
+  margin: 1.35rem auto 0;
+  width: min(1120px, 100%);
+}
+
+.admin-room-card {
+  background: #fff;
+  border: 5px solid #e5e7eb;
+  border-radius: 46px;
+  padding: clamp(1.3rem, 3vw, 2.65rem);
+}
+
+.admin-room-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-room-header h1 {
+  margin: 0;
+  color: #0b0b0b;
+  font: 900 clamp(1.6rem, 3vw, 2.4rem) / 1.08 "Sora", "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
 .admin-panel {
   overflow: hidden;
 }
@@ -1713,12 +1757,118 @@ textarea {
   min-height: 42px;
 }
 
-.admin-room-form {
-  margin-top: 1rem;
-  padding: 1rem;
+.admin-add-btn {
+  min-height: 52px;
+  border-radius: 9px;
+  padding: 0.7rem 1rem;
+  background: #f6e74a !important;
+  color: #0b0b0b !important;
+  box-shadow: none;
+  font: 900 clamp(1rem, 2vw, 1.45rem) / 1 "Sora", "Segoe UI", sans-serif;
+}
+
+.admin-add-btn:hover,
+.admin-add-btn:focus-visible {
+  background: #0b0b0b !important;
+  color: #f6e74a !important;
+}
+
+.admin-room-tools {
+  margin-top: 1.35rem;
+}
+
+.admin-room-search {
+  position: relative;
+  display: block;
+  width: min(274px, 100%);
+}
+
+.admin-room-search::before,
+.admin-room-search::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.admin-room-search::before {
+  left: 0.92rem;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #667085;
+  border-radius: 999px;
+  transform: translateY(-58%);
+}
+
+.admin-room-search::after {
+  left: 2rem;
+  top: calc(50% + 7px);
+  width: 10px;
+  height: 2px;
+  border-radius: 999px;
+  background: #667085;
+  transform: rotate(45deg);
+  transform-origin: left center;
+}
+
+.admin-room-search input {
+  width: 100%;
+  min-height: 58px;
+  border: 4px solid #e5e7eb;
   border-radius: 8px;
-  background: #fff9d7;
-  border: 1px solid rgba(20, 20, 20, 0.12);
+  padding: 0 0.85rem 0 3.1rem;
+  background: #fff;
+  color: #0b0b0b;
+  font: 500 1.24rem/1 "Manrope", "Segoe UI", sans-serif;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.admin-room-search input::placeholder {
+  color: #2e2e2e;
+}
+
+.admin-room-search input:focus {
+  border-color: #f6e74a;
+  box-shadow: 0 0 0 4px rgba(246, 231, 74, 0.24);
+}
+
+.admin-room-form {
+  margin-top: 1.05rem;
+  padding: 1rem;
+  border-radius: 14px;
+  background: #fff;
+  border: 2px solid #e5e7eb;
+}
+
+.admin-form-head {
+  display: grid;
+  gap: 0.18rem;
+  margin-bottom: 0.65rem;
+}
+
+.admin-form-head h3 {
+  margin: 0;
+  color: #0b0b0b;
+  font: 900 1.05rem/1.2 "Sora", "Segoe UI", sans-serif;
+}
+
+.admin-form-head p {
+  margin: 0;
+  color: var(--text-sub);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.admin-room-form .form-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-form-actions {
+  justify-content: flex-end;
 }
 
 .form-grid {
@@ -1754,6 +1904,12 @@ textarea {
   border-radius: 8px;
 }
 
+.admin-room-table-wrap {
+  margin-top: 1.9rem;
+  border: 5px solid #e5e7eb;
+  border-radius: 8px;
+}
+
 .admin-table {
   width: 100%;
   min-width: 760px;
@@ -1783,6 +1939,40 @@ textarea {
 }
 
 .admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-room-table {
+  min-width: 860px;
+}
+
+.admin-room-table th,
+.admin-room-table td {
+  padding: 1.15rem 1rem;
+  border-bottom: 5px solid #e5e7eb;
+  color: #0b0b0b;
+  font: 900 1rem/1.15 "Sora", "Segoe UI", sans-serif;
+}
+
+.admin-room-table th {
+  background: #fff;
+  color: #0b0b0b;
+  font-size: 1.2rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.admin-room-table td:first-child,
+.admin-room-table th:first-child {
+  width: 86px;
+  text-align: center;
+}
+
+.admin-room-table tbody tr:hover {
+  background: #fffbea;
+}
+
+.admin-room-table tbody tr:last-child td {
   border-bottom: 0;
 }
 
@@ -1830,6 +2020,55 @@ textarea {
   color: #b91c1c;
   background: rgba(239, 68, 68, 0.16);
   border: 1px solid rgba(185, 28, 28, 0.24);
+}
+
+.admin-room-table .room-status-badge {
+  border: 0;
+  border-radius: 6px;
+  padding: 0.34rem 0.52rem;
+  color: #fff;
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.admin-room-table .room-status-badge.available {
+  background: #69c96d;
+  color: #fff;
+}
+
+.admin-room-table .room-status-badge.occupied {
+  background: #e73326;
+  color: #fff;
+}
+
+.admin-edit-btn,
+.admin-delete-btn {
+  border-radius: 7px;
+  padding: 0.4rem 0.5rem;
+  box-shadow: none;
+  font-size: 0.84rem;
+}
+
+.admin-edit-btn {
+  background: #f6e74a !important;
+  color: #0b0b0b !important;
+}
+
+.admin-delete-btn {
+  background: #e73326 !important;
+  color: #fff !important;
+}
+
+.admin-edit-btn:hover,
+.admin-edit-btn:focus-visible {
+  background: #0b0b0b !important;
+  color: #f6e74a !important;
+}
+
+.admin-delete-btn:hover,
+.admin-delete-btn:focus-visible {
+  background: #b91c1c !important;
+  color: #fff !important;
 }
 
 .status-badge.waiting {
@@ -2157,6 +2396,18 @@ textarea {
   display: none !important;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (min-width: 860px) {
   .room-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2201,6 +2452,10 @@ textarea {
   #products,
   #gallery {
     scroll-margin-top: 9rem;
+  }
+
+  .admin-room-form .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -2402,6 +2657,53 @@ textarea {
   .filter-grid,
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-room-card {
+    border-width: 3px;
+    border-radius: 26px;
+    padding: 1rem;
+  }
+
+  .admin-room-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-add-btn {
+    width: 100%;
+    min-height: 46px;
+    font-size: 1rem;
+  }
+
+  .admin-room-search {
+    width: 100%;
+  }
+
+  .admin-room-search input {
+    min-height: 50px;
+    border-width: 3px;
+    font-size: 1rem;
+  }
+
+  .admin-room-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-room-table-wrap {
+    margin-top: 1.2rem;
+    border-width: 3px;
+  }
+
+  .admin-room-table th,
+  .admin-room-table td {
+    padding: 0.85rem 0.75rem;
+    border-bottom-width: 3px;
+    font-size: 0.9rem;
+  }
+
+  .admin-room-table th {
+    font-size: 1rem;
   }
 
   .auth-choice-btn {
