@@ -618,8 +618,8 @@ function renderAppBar({
   badge = 0,
 }) {
   const user = currentUser();
-  const accountRoute = user ? "/settings" : "/login";
-  const accountLabel = user ? "Akun" : "Login";
+  const accountRoute = user ? (isAdmin(user) ? "/admin" : "/settings") : "/login";
+  const accountLabel = user ? (isAdmin(user) ? "Admin" : "Akun") : "Login";
 
   return `
     <header class="appbar" aria-label="Navigasi utama">
@@ -1175,10 +1175,11 @@ function renderHistoryPage() {
 
 function renderSettingsPage() {
   const user = currentUser();
+  const admin = isAdmin(user);
   return `
     <section class="page">
       ${renderAppBar({
-        title: "Pengaturan",
+        title: admin ? "Dashboard Admin" : "Pengaturan",
         showMenu: true,
         showBackButton: true,
       })}
@@ -1187,6 +1188,15 @@ function renderSettingsPage() {
           <h3>Akun</h3>
           <p class="subtle account-label">Email</p>
           <p class="account-email">${escapeHtml(user?.email || "Belum login")}</p>
+          ${
+            admin
+              ? `<div class="btn-row admin-settings-links">
+                  <button type="button" class="btn primary" data-action="go-route" data-route="/admin">🏠 Manajemen Data Kamar</button>
+                  <button type="button" class="btn ghost" data-action="go-route" data-route="/admin/reports">📋 Laporan</button>
+                  <button type="button" class="btn ghost" data-action="go-route" data-route="/admin/chats">💬 Pesan</button>
+                </div>`
+              : ""
+          }
           <div class="btn-row">
             ${
               user
