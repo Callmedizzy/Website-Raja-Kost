@@ -8,6 +8,7 @@ const KOSTS = [
     image: "assets/images/kamar-single-fan.jpg",
     facilities: ["Kasur", "Lemari", "Meja Belajar", "Kipas Angin"],
     location: "Jl. Tegalgondo No. 123, Malang",
+    floor: "Lantai 1",
     rating: 4.2,
     available: true,
   },
@@ -20,6 +21,7 @@ const KOSTS = [
     image: "assets/images/kamar-ac.jpg",
     facilities: ["Kasur", "Lemari", "Meja Belajar", "AC", "TV"],
     location: "Jl. Tegalgondo No. 123, Malang",
+    floor: "Lantai 2",
     rating: 4.5,
     available: true,
   },
@@ -32,10 +34,13 @@ const KOSTS = [
     image: "assets/images/kamar-deluxe.jpg",
     facilities: ["Kasur", "Lemari", "Meja Belajar", "AC", "TV", "Kamar Mandi Dalam"],
     location: "Jl. Tegalgondo No. 123, Malang",
+    floor: "Lantai 3",
     rating: 4.8,
     available: true,
   },
 ];
+
+const OWNER_WHATSAPP = "62811456999";
 
 const SERVICES = [
   {
@@ -49,8 +54,8 @@ const SERVICES = [
   },
   {
     id: "2",
-    name: "Buang Sampah Harian",
-    description: "Penjemputan sampah",
+    name: "Waste Pickup",
+    description: "Penjemputan sampah harian",
     price: 50000,
     unit: "bulan",
     icon: "trash",
@@ -58,8 +63,8 @@ const SERVICES = [
   },
   {
     id: "3",
-    name: "Bersih - Bersih Kamar",
-    description: "Pembersihan kamar",
+    name: "Cleaning Service",
+    description: "Pembersihan kamar berkala",
     price: 75000,
     unit: "bulan",
     icon: "cleaning",
@@ -133,6 +138,17 @@ const TYPE_UPPER = {
   deluxe: "DELUXE",
 };
 
+const PRICE_FILTERS = {
+  all: "Semua harga",
+  under_1m: "< Rp1.000.000",
+  mid_1m_15m: "Rp1.000.000 - Rp1.500.000",
+  above_15m: "> Rp1.500.000",
+};
+
+const FACILITY_FILTERS = ["Kipas Angin", "AC", "TV", "Kamar Mandi Dalam"];
+
+const BOOKING_STATUSES = ["Menunggu Konfirmasi", "Dikonfirmasi", "Ditolak"];
+
 const SERVICE_ICON_TEXT = {
   laundry: "LND",
   trash: "TRH",
@@ -164,11 +180,16 @@ let store = loadStore();
 const appState = {
   homeSearch: "",
   homeFilter: "all",
+  homePriceFilter: "all",
+  homeFacilityFilter: "all",
   paymentQty: 1,
   paymentMethod: "qris",
   paymentSignature: "",
   adminRoomType: "single_fan",
   adminNewRoom: false,
+  adminRoomFormOpen: false,
+  adminEditingRoomId: "",
+  adminPhotoPreview: "",
   adminHistoryRoom: "all",
   adminReportFilter: "all",
   loginError: "",
@@ -198,11 +219,15 @@ const pickerConfirm = document.getElementById("pickerConfirm");
 function createDefaultStore() {
   const rooms = [];
   Object.entries(ROOM_CODES_BY_TYPE).forEach(([type, codes]) => {
+    const meta = KOSTS.find((item) => item.type === type) || KOSTS[0];
     codes.forEach((code) => {
       rooms.push({
         id: uid("room"),
         code,
         type,
+        price: meta.price,
+        floor: code.startsWith("1") || code.startsWith("2") ? "Lantai 1" : "Lantai 2",
+        image: meta.image,
         is_available: true,
       });
     });
@@ -212,15 +237,19 @@ function createDefaultStore() {
     users: [
       {
         id: "admin_1",
+        name: "Admin Raja Kost",
         email: "admin@rajakost.com",
         password: "admin123",
+        whatsapp: "0811456999",
         role: "admin",
         created_at: "2025-01-01T10:00:00.000Z",
       },
       {
         id: "user_1",
+        name: "User Demo",
         email: "user@rajakost.com",
         password: "user123",
+        whatsapp: "081234567890",
         role: "user",
         created_at: "2025-01-01T10:30:00.000Z",
       },
@@ -270,6 +299,39 @@ function loadStore() {
     if (!merged.users.some((u) => u.email === "admin@rajakost.com")) {
       merged.users.push(fallback.users[0]);
     }
+    if (!merged.users.some((u) => u.email === "user@rajakost.com")) {
+      merged.users.push(fallback.users[1]);
+    }
+
+    merged.users = merged.users.map((user) => ({
+      ...user,
+      name: user.name || String(user.email || "User").split("@")[0],
+      whatsapp: user.whatsapp || "",
+      role: user.role || "user",
+    }));
+
+    merged.rooms = merged.rooms.map((room) => {
+      const meta = getKostByType(room.type) || KOSTS[0];
+      return {
+        ...room,
+        id: room.id || uid("room"),
+        code: String(room.code || "").toUpperCase(),
+        type: room.type || meta.type,
+        price: Number(room.price || meta.price),
+        floor: room.floor || meta.floor || "Lantai 1",
+        image: room.image || meta.image,
+        is_available: typeof room.is_available === "boolean" ? room.is_available : true,
+      };
+    });
+
+    merged.bookings = merged.bookings.map((booking) => ({
+      ...booking,
+      status: BOOKING_STATUSES.includes(booking.status) ? booking.status : "Menunggu Konfirmasi",
+      booking_date: booking.booking_date || booking.created_at || new Date().toISOString(),
+      user_name: booking.user_name || merged.users.find((user) => user.id === booking.user_id)?.name || "",
+      user_email: booking.user_email || merged.users.find((user) => user.id === booking.user_id)?.email || "",
+      user_whatsapp: booking.user_whatsapp || merged.users.find((user) => user.id === booking.user_id)?.whatsapp || "",
+    }));
     return merged;
   } catch (_) {
     return fallback;
@@ -371,8 +433,55 @@ function getKost(id) {
   return KOSTS.find((item) => item.id === String(id)) || null;
 }
 
+function getKostByType(type) {
+  return KOSTS.find((item) => item.type === type) || null;
+}
+
 function getService(id) {
   return SERVICES.find((item) => item.id === String(id)) || null;
+}
+
+function typePrice(type) {
+  return Number(getKostByType(type)?.price || 0);
+}
+
+function typeImage(type) {
+  return getKostByType(type)?.image || "assets/images/kamar-single-fan.jpg";
+}
+
+function displayImageForType(type) {
+  const uploaded = store.rooms.find((room) => room.type === type && room.image && room.image.startsWith("data:image"));
+  return uploaded?.image || typeImage(type);
+}
+
+function typeFacilities(type) {
+  return getKostByType(type)?.facilities || [];
+}
+
+function whatsappUrl(room) {
+  const text = encodeURIComponent(
+    `Halo Raja Kost, saya ingin bertanya tentang ${room.name} (${formatRupiah(room.price)}/bulan).`
+  );
+  return `https://wa.me/${OWNER_WHATSAPP}?text=${text}`;
+}
+
+function matchesPriceFilter(room) {
+  const price = Number(room.price || 0);
+  if (appState.homePriceFilter === "under_1m") return price < 1000000;
+  if (appState.homePriceFilter === "mid_1m_15m") return price >= 1000000 && price <= 1500000;
+  if (appState.homePriceFilter === "above_15m") return price > 1500000;
+  return true;
+}
+
+function matchesFacilityFilter(room) {
+  if (appState.homeFacilityFilter === "all") return true;
+  return room.facilities.includes(appState.homeFacilityFilter);
+}
+
+function bookingStatusClass(status) {
+  if (status === "Dikonfirmasi") return "confirmed";
+  if (status === "Ditolak") return "rejected";
+  return "waiting";
 }
 
 function getRoomRowsByType(type) {
@@ -424,7 +533,7 @@ function renderApp() {
   } else if (requestedPath === "/payment") {
     appView.innerHTML = renderPaymentPage(parsed.params);
   } else if (requestedPath === "/login") {
-    appView.innerHTML = renderLoginPage();
+    appView.innerHTML = renderLoginPage(parsed.params);
   } else if (requestedPath === "/register") {
     appView.innerHTML = renderRegisterPage();
   } else if (requestedPath === "/history") {
@@ -480,19 +589,19 @@ function renderAppBar({
         }
         <button type="button" class="nav-brand" data-action="go-route" data-route="/home" aria-label="RAJA kost">
           <img src="assets/icon/app_icon.png" alt="" aria-hidden="true" />
-          <span>RAJA kost</span>
+          <span>Raja Kost</span>
         </button>
       </div>
       <label class="nav-search" aria-label="Cari kost">
         <input id="navSearch" type="search" placeholder="Cari kost..." value="${escapeHtml(appState.homeSearch)}" />
       </label>
       <nav class="nav-links" aria-label="Menu utama">
-        <button type="button" class="nav-link" data-action="home-section" data-section="products">Product</button>
-        <button type="button" class="nav-link" data-action="home-section" data-section="gallery">Gallery</button>
-        <button type="button" class="nav-link" data-action="go-route" data-route="/help">About</button>
+        <button type="button" class="nav-link" data-action="home-section" data-section="products">PRODUCT</button>
+        <button type="button" class="nav-link" data-action="home-section" data-section="gallery">GALLERY</button>
+        <button type="button" class="nav-link" data-action="go-route" data-route="/help">ABOUT</button>
       </nav>
       <div class="nav-right">
-        <button type="button" class="nav-cta" data-action="home-section" data-section="products">Sewa Sekarang</button>
+        <button type="button" class="nav-cta" data-action="home-section" data-section="products">BOOKING</button>
         <button type="button" class="nav-login ${user ? "is-logged-in" : ""}" data-action="go-route" data-route="${accountRoute}" aria-label="${accountLabel}">
           <span aria-hidden="true"></span>
         </button>
@@ -510,6 +619,8 @@ function renderHomePage() {
       room.name.toLowerCase().includes(q) ||
       room.location.toLowerCase().includes(q);
     if (!inSearch) return false;
+    if (!matchesPriceFilter(room)) return false;
+    if (!matchesFacilityFilter(room)) return false;
     if (appState.homeFilter === "all") return true;
     if (appState.homeFilter === "favorites") return favs.has(room.id);
     return room.type === appState.homeFilter;
@@ -525,34 +636,75 @@ function renderHomePage() {
         showChatButton: true,
         showCrown: true,
       })}
-      <section class="block" id="products">
-        <div class="block-head">
-          <h2>Kamar</h2>
+      <section class="home-board" id="products">
+        <div class="home-main">
+          <section class="block product-block">
+            <div class="block-head">
+              <div>
+                <p class="eyebrow">PRODUCT</p>
+                <h2>Daftar Kamar Raja Kost</h2>
+              </div>
+              <span class="count-pill">${rooms.length} pilihan</span>
+            </div>
+            <div class="filter-panel">
+              <label class="search">
+                <input id="homeSearch" type="search" placeholder="Cari nama atau lokasi kost" value="${escapeHtml(
+                  appState.homeSearch
+                )}" />
+              </label>
+              <div class="filter-grid">
+                <div class="field compact">
+                  <label>Harga</label>
+                  <select data-action="home-price-filter">
+                    ${Object.entries(PRICE_FILTERS)
+                      .map(
+                        ([value, label]) =>
+                          `<option value="${value}" ${appState.homePriceFilter === value ? "selected" : ""}>${label}</option>`
+                      )
+                      .join("")}
+                  </select>
+                </div>
+                <div class="field compact">
+                  <label>Fasilitas</label>
+                  <select data-action="home-facility-filter">
+                    <option value="all" ${appState.homeFacilityFilter === "all" ? "selected" : ""}>Semua fasilitas</option>
+                    ${FACILITY_FILTERS.map(
+                      (facility) =>
+                        `<option value="${facility}" ${appState.homeFacilityFilter === facility ? "selected" : ""}>${facility}</option>`
+                    ).join("")}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="chips">
+              ${renderHomeFilterChip("all", "Semua")}
+              ${renderHomeFilterChip("single_fan", "Single Fan")}
+              ${renderHomeFilterChip("single_ac", "Single AC")}
+              ${renderHomeFilterChip("deluxe", "Deluxe")}
+              ${renderHomeFilterChip("favorites", "Favorit")}
+            </div>
+            <div class="room-grid">
+              ${
+                rooms.length
+                  ? rooms.map((room) => renderRoomCard(room, favs.has(room.id))).join("")
+                  : '<div class="empty">Tidak ada kamar yang cocok dengan filter atau pencarian.</div>'
+              }
+            </div>
+          </section>
         </div>
-        <div class="chips">
-          ${renderHomeFilterChip("all", "Semua")}
-          ${renderHomeFilterChip("single_fan", "Single Fan")}
-          ${renderHomeFilterChip("single_ac", "Single AC")}
-          ${renderHomeFilterChip("deluxe", "Deluxe")}
-          ${renderHomeFilterChip("favorites", "Favorit")}
-        </div>
-        <div class="room-grid">
-          ${
-            rooms.length
-              ? rooms.map((room) => renderRoomCard(room, favs.has(room.id))).join("")
-              : '<div class="empty">Tidak ada kamar yang cocok dengan filter atau pencarian.</div>'
-          }
-        </div>
+        <aside class="services-panel" aria-label="Layanan Tambahan">
+          <div class="block-head">
+            <div>
+              <p class="eyebrow">ADD-ON</p>
+              <h2>Layanan Tambahan</h2>
+            </div>
+          </div>
+          <div class="service-list">
+            ${SERVICES.map((service) => renderServiceCard(service)).join("")}
+          </div>
+        </aside>
       </section>
       ${renderGallerySection()}
-      <section class="block">
-        <div class="block-head">
-          <h2>Layanan Tambahan</h2>
-        </div>
-        <div class="service-list">
-          ${SERVICES.map((service) => renderServiceCard(service)).join("")}
-        </div>
-      </section>
     </section>
   `;
 }
@@ -590,24 +742,38 @@ function renderHomeFilterChip(value, label) {
 }
 
 function renderRoomCard(room, liked) {
+  const rows = getRoomRowsByType(room.type);
+  const availableCount = rows.length ? rows.filter((row) => row.is_available).length : room.available ? 1 : 0;
+  const floorLabel = room.floor || "Lantai 1";
+  const shortFacilities = room.facilities.slice(0, 4);
   return `
-    <article class="room-card" data-action="open-detail" data-room-id="${room.id}">
+    <article class="room-card" data-room-id="${room.id}">
       <div class="room-media">
-        <img src="${room.image}" alt="${escapeHtml(room.name)}" loading="lazy" />
+        <img src="${displayImageForType(room.type)}" alt="${escapeHtml(room.name)}" loading="lazy" />
       </div>
       <div class="room-content">
         <div class="room-topline">
           <span class="room-type ${room.type}">${TYPE_UPPER[room.type] || room.type.toUpperCase()}</span>
+          <span class="floor-badge">${escapeHtml(floorLabel)}</span>
           <button type="button" class="fav-btn ${liked ? "active" : ""}" data-action="toggle-favorite" data-room-id="${
             room.id
           }">${liked ? "Favorit" : "Simpan"}</button>
         </div>
         <h3 class="room-name">${escapeHtml(room.name)}</h3>
         <p class="room-location">${escapeHtml(room.location)}</p>
-        <p class="room-rate">Rating ${room.rating.toFixed(1)}</p>
+        <p class="room-description">${escapeHtml(room.description)}</p>
+        <div class="facility-mini-row">
+          ${shortFacilities.map((item) => `<span class="facility-mini">${escapeHtml(item)}</span>`).join("")}
+        </div>
         <div class="room-bottom">
           <p class="room-price ${room.type}">${formatRupiah(room.price)}/bulan</p>
-          <span class="availability ${room.available ? "ok" : "no"}">${room.available ? "Tersedia" : "Penuh"}</span>
+          <span class="availability ${availableCount > 0 ? "ok" : "no"}">${
+            availableCount > 0 ? `${availableCount} Tersedia` : "Terisi"
+          }</span>
+        </div>
+        <div class="room-actions">
+          <button type="button" class="btn muted" data-action="open-detail" data-room-id="${room.id}">Detail</button>
+          <button type="button" class="btn whatsapp" data-action="contact-wa" data-room-id="${room.id}">WhatsApp</button>
         </div>
       </div>
     </article>
@@ -693,7 +859,7 @@ function renderDetailPage(params) {
         showBackButton: true,
       })}
       <section class="hero-image">
-        <img src="${room.image}" alt="${escapeHtml(room.name)}" />
+        <img src="${displayImageForType(room.type)}" alt="${escapeHtml(room.name)}" />
       </section>
       <section class="panel">
         <div class="row-between">
@@ -716,7 +882,7 @@ function renderDetailPage(params) {
       </section>
       <section class="panel">
         <h3>Status kamar (${TYPE_LABEL[room.type]})</h3>
-        <p class="subtle">${anyAvailable ? "Ada yang tersedia" : "Semua penuh"}</p>
+        <p class="subtle">${anyAvailable ? "Ada kamar tersedia untuk booking." : "Semua kamar tipe ini sedang terisi."}</p>
         <div class="room-status">
           ${statusRows
             .map(
@@ -726,7 +892,8 @@ function renderDetailPage(params) {
             .join("")}
         </div>
         <div class="btn-row">
-          <button type="button" class="btn primary" data-action="book-from-detail" data-room-id="${room.id}">Pesan Sekarang</button>
+          <button type="button" class="btn primary" data-action="book-from-detail" data-room-id="${room.id}">Booking</button>
+          <button type="button" class="btn whatsapp" data-action="contact-wa" data-room-id="${room.id}">Hubungi Pemilik via WhatsApp</button>
         </div>
       </section>
     </section>
@@ -869,16 +1036,36 @@ function renderPaymentPage(params) {
   `;
 }
 
-function renderLoginPage() {
+function renderLoginPage(params = {}) {
+  const role = params.role === "admin" ? "admin" : params.role === "user" ? "user" : "";
+  if (!role) {
+    return `
+      <section class="page auth-page">
+        ${renderAppBar({
+          title: "Login",
+          showMenu: false,
+          showBackButton: true,
+        })}
+        <section class="auth-choice">
+          <button type="button" class="auth-choice-btn" data-action="go-route" data-route="/login?role=user">LOGIN</button>
+          <button type="button" class="auth-choice-btn admin" data-action="go-route" data-route="/login?role=admin">LOGIN ADMIN</button>
+        </section>
+      </section>
+    `;
+  }
+
+  const isAdminLogin = role === "admin";
   return `
-    <section class="page">
+    <section class="page auth-page">
       ${renderAppBar({
-        title: "Login",
+        title: isAdminLogin ? "Login Admin" : "Login User",
         showMenu: false,
         showBackButton: true,
       })}
-      <form class="form-card" data-form="login">
-        <h2>Masuk ke Raja Kost</h2>
+      <form class="form-card auth-card" data-form="login">
+        <input type="hidden" name="role" value="${role}" />
+        <h2>${isAdminLogin ? "Masuk Dashboard Admin" : "Masuk ke Raja Kost"}</h2>
+        <p class="auth-sub">${isAdminLogin ? "Gunakan akun admin untuk mengelola kamar dan booking." : "Gunakan akun user untuk booking kamar dan melihat riwayat."}</p>
         <div class="field">
           <label>Email</label>
           <input type="email" name="email" required />
@@ -891,7 +1078,11 @@ function renderLoginPage() {
         <div class="btn-row">
           <button type="submit" class="btn primary">Login</button>
         </div>
-        <button type="button" class="text-link" data-action="go-route" data-route="/register">Belum punya akun? Daftar di sini</button>
+        ${
+          isAdminLogin
+            ? '<button type="button" class="text-link" data-action="go-route" data-route="/login?role=user">Login sebagai user</button>'
+            : '<button type="button" class="text-link" data-action="go-route" data-route="/register">Belum punya akun? Daftar di sini</button>'
+        }
       </form>
     </section>
   `;
@@ -905,8 +1096,13 @@ function renderRegisterPage() {
         showMenu: false,
         showBackButton: true,
       })}
-      <form class="form-card" data-form="register">
+      <form class="form-card auth-card" data-form="register">
         <h2>Buat akun baru</h2>
+        <p class="auth-sub">Daftar agar bisa booking kamar dan memantau status pesanan.</p>
+        <div class="field">
+          <label>Nama</label>
+          <input type="text" name="name" required />
+        </div>
         <div class="field">
           <label>Email</label>
           <input type="email" name="email" required />
@@ -914,6 +1110,10 @@ function renderRegisterPage() {
         <div class="field">
           <label>Password</label>
           <input type="password" name="password" required />
+        </div>
+        <div class="field">
+          <label>Nomor WhatsApp</label>
+          <input type="tel" name="whatsapp" required />
         </div>
         ${appState.registerError ? `<p class="danger-text subtle">${escapeHtml(appState.registerError)}</p>` : ""}
         <div class="btn-row">
@@ -949,13 +1149,20 @@ function renderHistoryPage() {
                         <h4>${escapeHtml(booking.service_name)}</h4>
                         <strong>${formatRupiah(booking.final_price)}</strong>
                       </div>
+                      <span class="status-badge ${bookingStatusClass(booking.status)}">${escapeHtml(
+                        booking.status || "Menunggu Konfirmasi"
+                      )}</span>
                       <p class="meta">Dibuat: ${formatDate(booking.created_at)}</p>
                       ${
                         booking.room_type || booking.room_code
                           ? `<p>Tipe: ${escapeHtml(booking.room_type || "-")} | Kamar: ${escapeHtml(booking.room_code || "-")}</p>`
                           : ""
                       }
-                      <p>Jumlah: ${escapeHtml(booking.quantity)}</p>
+                      <p>${String(booking.service_id || "").startsWith("kost_") ? "Tanggal booking" : "Jumlah"}: ${
+                        String(booking.service_id || "").startsWith("kost_")
+                          ? escapeHtml(formatDate(booking.booking_date || booking.created_at))
+                          : escapeHtml(booking.quantity)
+                      }</p>
                       <div class="btn-row">
                         <button type="button" class="btn warn" data-action="cancel-booking" data-booking-id="${
                           booking.id
@@ -1154,157 +1361,255 @@ function adminHistoryRows() {
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 }
 
-function renderAdminPage() {
-  const grouped = groupedRooms();
-  const typedRows = store.rooms
-    .filter((row) => row.type === appState.adminRoomType)
-    .sort((a, b) => a.code.localeCompare(b.code));
-  const history = adminHistoryRows();
+function renderAdminRoomForm(editing) {
+  const selectedType = editing?.type || appState.adminRoomType || "single_fan";
+  const selectedPrice = Number(editing?.price || typePrice(selectedType) || 0);
+  const image = appState.adminPhotoPreview || editing?.image || typeImage(selectedType);
 
   return `
-    <section class="page">
+    <form class="admin-room-form" data-form="admin-room">
+      <input type="hidden" name="roomId" value="${escapeHtml(editing?.id || "")}" />
+      <div class="form-grid">
+        <div class="field">
+          <label>Kode Kamar</label>
+          <input type="text" name="code" value="${escapeHtml(editing?.code || "")}" placeholder="mis. 1A" required />
+        </div>
+        <div class="field">
+          <label>Tipe</label>
+          <select name="type">
+            ${Object.entries(TYPE_LABEL)
+              .map(
+                ([value, label]) =>
+                  `<option value="${value}" ${selectedType === value ? "selected" : ""}>${label}</option>`
+              )
+              .join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label>Harga</label>
+          <input type="number" name="price" min="0" step="50000" value="${selectedPrice}" required />
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select name="status">
+            <option value="available" ${editing?.is_available === false ? "" : "selected"}>Tersedia</option>
+            <option value="occupied" ${editing?.is_available === false ? "selected" : ""}>Terisi</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Label Lantai</label>
+          <input type="text" name="floor" value="${escapeHtml(editing?.floor || "Lantai 1")}" required />
+        </div>
+        <div class="field">
+          <label>Upload Foto Kost</label>
+          <input type="file" name="photo" accept="image/*" data-action="admin-photo-preview" />
+        </div>
+      </div>
+      <div class="upload-preview">
+        <img src="${image}" alt="Preview foto kamar" />
+        <span>${editing ? "Preview foto saat ini" : "Preview lokal"}</span>
+      </div>
+      <div class="btn-row">
+        <button type="submit" class="btn primary">${editing ? "Simpan Perubahan" : "Tambah Kamar"}</button>
+        <button type="button" class="btn ghost" data-action="admin-room-form-cancel">Batal</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderAdminRoomTable(rows) {
+  return `
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Kode Kamar</th>
+            <th>Tipe</th>
+            <th>Harga</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            rows.length
+              ? rows
+                  .map(
+                    (room, index) => `
+                      <tr>
+                        <td>${index + 1}</td>
+                        <td><strong>${escapeHtml(room.code)}</strong><span class="table-sub">${escapeHtml(
+                          room.floor || "-"
+                        )}</span></td>
+                        <td>${escapeHtml(TYPE_LABEL[room.type] || room.type || "-")}</td>
+                        <td>${formatRupiah(room.price || typePrice(room.type))}</td>
+                        <td><span class="room-status-badge ${room.is_available ? "available" : "occupied"}">${
+                          room.is_available ? "Tersedia" : "Terisi"
+                        }</span></td>
+                        <td>
+                          <div class="table-actions">
+                            <button type="button" class="btn muted" data-action="edit-room" data-room-id="${room.id}">Edit</button>
+                            <button type="button" class="btn warn" data-action="delete-room" data-room-id="${room.id}">Hapus</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `
+                  )
+                  .join("")
+              : '<tr><td colspan="6" class="table-empty">Belum ada data kamar.</td></tr>'
+          }
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAdminBookingTable(bookings) {
+  return `
+    <div class="table-wrap">
+      <table class="admin-table booking-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Penyewa</th>
+            <th>Kamar</th>
+            <th>Tanggal Booking</th>
+            <th>Harga</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            bookings.length
+              ? bookings
+                  .map(
+                    (booking, index) => `
+                      <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                          <strong>${escapeHtml(booking.user_name || booking.user_email || "-")}</strong>
+                          <span class="table-sub">${escapeHtml(booking.user_whatsapp || booking.user_email || "")}</span>
+                        </td>
+                        <td>
+                          ${escapeHtml(booking.service_name || "-")}
+                          <span class="table-sub">${escapeHtml(booking.room_code || "-")}</span>
+                        </td>
+                        <td>${formatDate(booking.booking_date || booking.created_at)}</td>
+                        <td>${formatRupiah(booking.final_price)}</td>
+                        <td><span class="status-badge ${bookingStatusClass(booking.status)}">${escapeHtml(
+                          booking.status || "Menunggu Konfirmasi"
+                        )}</span></td>
+                        <td>
+                          <select class="status-select" data-action="booking-status" data-booking-id="${booking.id}">
+                            ${BOOKING_STATUSES.map(
+                              (status) =>
+                                `<option value="${status}" ${
+                                  (booking.status || "Menunggu Konfirmasi") === status ? "selected" : ""
+                                }>${status}</option>`
+                            ).join("")}
+                          </select>
+                        </td>
+                      </tr>
+                    `
+                  )
+                  .join("")
+              : '<tr><td colspan="7" class="table-empty">Belum ada data booking.</td></tr>'
+          }
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAdminAssignmentPanel() {
+  return `
+    <section class="panel">
+      <h3>Penugasan Email ke Kamar</h3>
+      <p class="subtle">Catat email penghuni dan kamar yang ditempati.</p>
+      <form class="top-gap" data-form="admin-assignment">
+        <div class="form-grid">
+          <div class="field">
+            <label>Email pengguna</label>
+            <input type="email" name="email" required />
+          </div>
+          <div class="field">
+            <label>Kode kamar</label>
+            <input type="text" name="roomCode" required />
+          </div>
+        </div>
+        <div class="field">
+          <label>Catatan (opsional)</label>
+          <textarea name="note"></textarea>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn primary">Simpan penugasan</button>
+        </div>
+      </form>
+      <div class="tile-list">
+        ${
+          store.room_assignments.length
+            ? [...store.room_assignments]
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .map(
+                  (assignment) => `
+                    <article class="tile">
+                      <h4>${escapeHtml(assignment.user_email)}</h4>
+                      <p>Kamar: ${escapeHtml(assignment.room_code)}</p>
+                      ${assignment.note ? `<p>Catatan: ${escapeHtml(assignment.note)}</p>` : ""}
+                      <div class="btn-row">
+                        <button type="button" class="btn warn" data-action="delete-assignment" data-assignment-id="${assignment.id}">Hapus</button>
+                      </div>
+                    </article>
+                  `
+                )
+                .join("")
+            : '<div class="empty">Belum ada penugasan.</div>'
+        }
+      </div>
+    </section>
+  `;
+}
+
+function renderAdminPage() {
+  const roomRows = [...store.rooms].sort((a, b) => a.code.localeCompare(b.code));
+  const bookings = [...store.bookings].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+  const editing = store.rooms.find((room) => room.id === appState.adminEditingRoomId) || null;
+
+  return `
+    <section class="page admin-page">
       ${renderAppBar({
         title: "Admin",
         showMenu: true,
         showBackButton: true,
       })}
       <section class="panel-stack">
-        <section class="panel">
-          <h3>Kamar</h3>
-          <p class="subtle">Tambah dan ubah ketersediaan kamar.</p>
-          <form class="top-gap" data-form="admin-room">
-            <div class="field">
-              <label>Pilih tipe kamar</label>
-              <select name="type" data-action="admin-room-type">
-                ${Object.entries(TYPE_LABEL)
-                  .map(
-                    ([value, label]) =>
-                      `<option value="${value}" ${appState.adminRoomType === value ? "selected" : ""}>${label}</option>`
-                  )
-                  .join("")}
-              </select>
+        <section class="panel admin-panel">
+          <div class="block-head">
+            <div>
+              <p class="eyebrow">ADMIN CONTROL PANEL</p>
+              <h3>Manajemen Data Kamar</h3>
             </div>
-            <div class="field">
-              <label>Pilih kode kamar</label>
-              <select name="existingCode" ${appState.adminNewRoom ? "disabled" : ""}>
-                <option value="">-- pilih --</option>
-                ${typedRows.map((row) => `<option value="${row.code}">${row.code}</option>`).join("")}
-              </select>
-            </div>
-            <label class="check-row">
-              <input type="checkbox" name="newRoom" data-action="admin-room-new" ${appState.adminNewRoom ? "checked" : ""} />
-              Kamar baru (kode belum ada)
-            </label>
-            ${
-              appState.adminNewRoom
-                ? `<div class="field">
-                    <label>Kode baru</label>
-                    <input type="text" name="newCode" placeholder="mis. 5C" />
-                  </div>`
-                : ""
-            }
-            <label class="check-row">
-              <input type="checkbox" name="available" checked />
-              Tersedia
-            </label>
-            <div class="btn-row">
-              <button type="submit" class="btn primary">Simpan status</button>
-            </div>
-          </form>
-          <div class="panel-stack">
-            ${renderAdminRoomGroup("single_fan", grouped.single_fan)}
-            ${renderAdminRoomGroup("single_ac", grouped.single_ac)}
-            ${renderAdminRoomGroup("deluxe", grouped.deluxe)}
-            ${grouped.lainnya.length ? renderAdminRoomGroup("lainnya", grouped.lainnya) : ""}
+            <button type="button" class="btn primary add-room-btn" data-action="open-admin-room-form">+ Tambah Kamar</button>
           </div>
+          ${appState.adminRoomFormOpen || editing ? renderAdminRoomForm(editing) : ""}
+          ${renderAdminRoomTable(roomRows)}
         </section>
 
-        <section class="panel">
-          <h3>Penugasan Email -> Kamar</h3>
-          <p class="subtle">Catat email penghuni dan kamar yang ditempati.</p>
-          <form class="top-gap" data-form="admin-assignment">
-            <div class="field">
-              <label>Email pengguna</label>
-              <input type="email" name="email" required />
+        <section class="panel admin-panel">
+          <div class="block-head">
+            <div>
+              <p class="eyebrow">BOOKING</p>
+              <h3>Data Booking</h3>
             </div>
-            <div class="field">
-              <label>Kode kamar</label>
-              <input type="text" name="roomCode" required />
-            </div>
-            <div class="field">
-              <label>Catatan (opsional)</label>
-              <textarea name="note"></textarea>
-            </div>
-            <div class="btn-row">
-              <button type="submit" class="btn primary">Simpan penugasan</button>
-            </div>
-          </form>
-          <div class="tile-list">
-            ${
-              store.room_assignments.length
-                ? [...store.room_assignments]
-                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                    .map(
-                      (assignment) => `
-                      <article class="tile">
-                        <h4>${escapeHtml(assignment.user_email)}</h4>
-                        <p>Kamar: ${escapeHtml(assignment.room_code)}</p>
-                        ${assignment.note ? `<p>Catatan: ${escapeHtml(assignment.note)}</p>` : ""}
-                        <div class="btn-row">
-                          <button type="button" class="btn warn" data-action="delete-assignment" data-assignment-id="${
-                            assignment.id
-                          }">Hapus</button>
-                        </div>
-                      </article>
-                    `
-                    )
-                    .join("")
-                : '<div class="empty">Belum ada penugasan.</div>'
-            }
           </div>
+          ${renderAdminBookingTable(bookings)}
         </section>
 
-        <section class="panel">
-          <h3>Riwayat per Kamar</h3>
-          <p class="subtle">Lihat transaksi berdasarkan kamar dan layanan.</p>
-          <div class="field">
-            <label>Pilih kamar</label>
-            <select data-action="admin-history-filter">
-              <option value="all" ${appState.adminHistoryRoom === "all" ? "selected" : ""}>Semua kamar</option>
-              ${store.rooms
-                .sort((a, b) => a.code.localeCompare(b.code))
-                .map(
-                  (room) =>
-                    `<option value="${room.code}" ${appState.adminHistoryRoom === room.code ? "selected" : ""}>${room.code}</option>`
-                )
-                .join("")}
-            </select>
-          </div>
-          <div class="tile-list">
-            ${
-              history.length
-                ? history
-                    .map(
-                      (row) => `
-                      <article class="tile">
-                        <div class="row-between">
-                          <h4>Kamar: ${escapeHtml(row.room_code)}</h4>
-                          <strong>${formatRupiah(row.final_price)}</strong>
-                        </div>
-                        <p>${escapeHtml(row.service_name)}</p>
-                        <p class="meta">${row.is_room_booking ? "Booking kamar" : "Layanan"}${
-                          row.room_type ? ` | Tipe: ${escapeHtml(row.room_type)}` : ""
-                        }</p>
-                        <p class="meta">Email: ${escapeHtml(row.assigned_email || row.user_email || "Belum dicatat")}</p>
-                        <p class="meta">Dibuat: ${formatDate(row.created_at)}</p>
-                      </article>
-                    `
-                    )
-                    .join("")
-                : '<div class="empty">Belum ada riwayat untuk filter ini.</div>'
-            }
-          </div>
-        </section>
+        ${renderAdminAssignmentPanel()}
       </section>
     </section>
   `;
@@ -1709,7 +2014,11 @@ function handlePaymentSubmit() {
   store.bookings.push({
     id: uid("booking"),
     created_at: new Date().toISOString(),
+    booking_date: new Date().toISOString(),
     user_id: user.id,
+    user_name: user.name || user.email,
+    user_email: user.email,
+    user_whatsapp: user.whatsapp || "",
     service_id: ctx.service.id,
     service_name: ctx.service.name,
     room_type: ctx.roomType || null,
@@ -1719,6 +2028,7 @@ function handlePaymentSubmit() {
     total_price: total,
     discount,
     final_price: finalPrice,
+    status: "Menunggu Konfirmasi",
   });
 
   if (ctx.service.category === "room" && ctx.roomType && ctx.roomCode) {
@@ -1731,6 +2041,81 @@ function handlePaymentSubmit() {
   saveStore();
   toast(`Booking ${ctx.service.name} berhasil disimpan.`);
   go("/history");
+}
+
+function releaseRoomForBooking(booking) {
+  if (!booking?.room_type || !booking?.room_code) return;
+  const room = store.rooms.find((item) => item.type === booking.room_type && item.code === booking.room_code);
+  if (room) {
+    room.is_available = true;
+  }
+}
+
+function occupyRoomForBooking(booking) {
+  if (!booking?.room_type || !booking?.room_code) return;
+  const room = store.rooms.find((item) => item.type === booking.room_type && item.code === booking.room_code);
+  if (room) {
+    room.is_available = false;
+  }
+}
+
+function handleRoomBooking(roomId) {
+  const room = getKost(roomId);
+  if (!room) return;
+  const user = currentUser();
+  if (!user) {
+    appState.redirectAfterLogin = `/detail?room=${room.id}`;
+    toast("Silakan login sebelum booking kamar.");
+    go("/login?role=user");
+    return;
+  }
+
+  const availableRoom = getRoomRowsByType(room.type).find((row) => row.is_available);
+  if (!availableRoom) {
+    toast("Kamar tipe ini sedang penuh.");
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const booking = {
+    id: uid("booking"),
+    created_at: now,
+    booking_date: now,
+    user_id: user.id,
+    user_name: user.name || user.email,
+    user_email: user.email,
+    user_whatsapp: user.whatsapp || "",
+    service_id: `kost_${room.id}`,
+    service_name: `Booking ${room.name}`,
+    room_name: room.name,
+    room_type: room.type,
+    room_code: availableRoom.code,
+    quantity: 1,
+    price_per_unit: room.price,
+    total_price: room.price,
+    discount: 0,
+    final_price: room.price,
+    status: "Menunggu Konfirmasi",
+  };
+
+  store.bookings.push(booking);
+  occupyRoomForBooking(booking);
+  saveStore();
+  toast("Booking tersimpan dan menunggu konfirmasi admin.");
+  go("/history");
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve) => {
+    if (!file || !file.size) {
+      resolve("");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => resolve("");
+    reader.readAsDataURL(file);
+  });
 }
 
 function handleDeleteAccount() {
@@ -1849,13 +2234,14 @@ function onClick(event) {
 
   if (action === "book-from-detail") {
     const roomId = target.dataset.roomId;
-    const room = getKost(roomId);
+    handleRoomBooking(roomId);
+    return;
+  }
+
+  if (action === "contact-wa") {
+    const room = getKost(target.dataset.roomId);
     if (!room) return;
-    go("/payment", {
-      kind: "room",
-      roomId: room.id,
-      roomType: room.type,
-    });
+    window.open(whatsappUrl(room), "_blank", "noopener");
     return;
   }
 
@@ -1895,6 +2281,8 @@ function onClick(event) {
     if (!bookingId) return;
     const ok = window.confirm("Batalkan pesanan ini?");
     if (!ok) return;
+    const booking = store.bookings.find((item) => item.id === bookingId);
+    releaseRoomForBooking(booking);
     store.bookings = store.bookings.filter((item) => item.id !== bookingId);
     saveStore();
     toast("Pesanan berhasil dibatalkan.");
@@ -1973,6 +2361,32 @@ function onClick(event) {
     return;
   }
 
+  if (action === "open-admin-room-form") {
+    appState.adminRoomFormOpen = true;
+    appState.adminEditingRoomId = "";
+    appState.adminPhotoPreview = "";
+    renderApp();
+    return;
+  }
+
+  if (action === "edit-room") {
+    const roomId = target.dataset.roomId;
+    if (!roomId) return;
+    appState.adminRoomFormOpen = true;
+    appState.adminEditingRoomId = roomId;
+    appState.adminPhotoPreview = "";
+    renderApp();
+    return;
+  }
+
+  if (action === "admin-room-form-cancel") {
+    appState.adminRoomFormOpen = false;
+    appState.adminEditingRoomId = "";
+    appState.adminPhotoPreview = "";
+    renderApp();
+    return;
+  }
+
   if (action === "toggle-room-availability") {
     const roomId = target.dataset.roomId;
     const room = store.rooms.find((item) => item.id === roomId);
@@ -1988,6 +2402,11 @@ function onClick(event) {
     const ok = window.confirm("Hapus kamar ini?");
     if (!ok) return;
     store.rooms = store.rooms.filter((item) => item.id !== roomId);
+    if (appState.adminEditingRoomId === roomId) {
+      appState.adminEditingRoomId = "";
+      appState.adminRoomFormOpen = false;
+      appState.adminPhotoPreview = "";
+    }
     saveStore();
     toast("Kamar dihapus.");
     renderApp();
@@ -2047,6 +2466,18 @@ function onChange(event) {
   if (!(target instanceof HTMLElement)) return;
   const action = target.dataset.action;
 
+  if (action === "home-price-filter") {
+    appState.homePriceFilter = target.value || "all";
+    renderApp();
+    return;
+  }
+
+  if (action === "home-facility-filter") {
+    appState.homeFacilityFilter = target.value || "all";
+    renderApp();
+    return;
+  }
+
   if (action === "admin-room-type") {
     appState.adminRoomType = target.value;
     renderApp();
@@ -2060,10 +2491,37 @@ function onChange(event) {
   if (action === "admin-history-filter") {
     appState.adminHistoryRoom = target.value || "all";
     renderApp();
+    return;
+  }
+
+  if (action === "booking-status") {
+    const bookingId = target.dataset.bookingId;
+    const booking = store.bookings.find((item) => item.id === bookingId);
+    const status = target.value;
+    if (!booking || !BOOKING_STATUSES.includes(status)) return;
+    booking.status = status;
+    if (status === "Ditolak") {
+      releaseRoomForBooking(booking);
+    } else {
+      occupyRoomForBooking(booking);
+    }
+    saveStore();
+    toast("Status booking diperbarui.");
+    renderApp();
+    return;
+  }
+
+  if (action === "admin-photo-preview" && target instanceof HTMLInputElement) {
+    const file = target.files?.[0];
+    readFileAsDataURL(file).then((dataUrl) => {
+      if (!dataUrl) return;
+      appState.adminPhotoPreview = dataUrl;
+      renderApp();
+    });
   }
 }
 
-function onSubmit(event) {
+async function onSubmit(event) {
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;
 
@@ -2076,9 +2534,20 @@ function onSubmit(event) {
     const formData = new FormData(form);
     const email = String(formData.get("email") || "").trim().toLowerCase();
     const password = String(formData.get("password") || "");
+    const role = String(formData.get("role") || "user");
     const user = store.users.find((item) => item.email.toLowerCase() === email && item.password === password);
     if (!user) {
       appState.loginError = "Email atau password tidak valid.";
+      renderApp();
+      return;
+    }
+    if (role === "admin" && !isAdmin(user)) {
+      appState.loginError = "Akun ini bukan admin.";
+      renderApp();
+      return;
+    }
+    if (role === "user" && isAdmin(user)) {
+      appState.loginError = "Gunakan tombol Login Admin untuk akun admin.";
       renderApp();
       return;
     }
@@ -2089,7 +2558,7 @@ function onSubmit(event) {
     toast(`Selamat datang, ${user.email}`);
     const parsed = parseHash();
     const nextParam = parsed.params.next;
-    const redirect = nextParam || appState.redirectAfterLogin || "/home";
+    const redirect = nextParam || appState.redirectAfterLogin || (isAdmin(user) ? "/admin" : "/home");
     appState.redirectAfterLogin = null;
     if (redirect.startsWith("/")) {
       const [path, query = ""] = redirect.split("?");
@@ -2102,10 +2571,12 @@ function onSubmit(event) {
 
   if (formType === "register") {
     const formData = new FormData(form);
+    const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim().toLowerCase();
     const password = String(formData.get("password") || "").trim();
-    if (!email || !password) {
-      appState.registerError = "Email dan password wajib diisi.";
+    const whatsapp = String(formData.get("whatsapp") || "").trim();
+    if (!name || !email || !password || !whatsapp) {
+      appState.registerError = "Nama, email, password, dan nomor WhatsApp wajib diisi.";
       renderApp();
       return;
     }
@@ -2114,12 +2585,13 @@ function onSubmit(event) {
       renderApp();
       return;
     }
-    const role = email === "admin@rajakost.com" ? "admin" : "user";
     const newUser = {
       id: uid("user"),
+      name,
       email,
       password,
-      role,
+      whatsapp,
+      role: "user",
       created_at: new Date().toISOString(),
     };
     store.users.push(newUser);
@@ -2167,33 +2639,54 @@ function onSubmit(event) {
 
   if (formType === "admin-room") {
     const formData = new FormData(form);
+    const roomId = String(formData.get("roomId") || "").trim();
+    const code = String(formData.get("code") || "").trim().toUpperCase();
     const type = String(formData.get("type") || "").trim();
-    const isNewRoom = Boolean(formData.get("newRoom"));
-    const existingCode = String(formData.get("existingCode") || "").trim();
-    const newCode = String(formData.get("newCode") || "").trim().toUpperCase();
-    const code = (isNewRoom ? newCode : existingCode).trim().toUpperCase();
-    const available = Boolean(formData.get("available"));
+    const price = Number(formData.get("price") || 0);
+    const floor = String(formData.get("floor") || "").trim();
+    const available = String(formData.get("status") || "available") === "available";
+    const photoFile = formData.get("photo");
+    const uploadedImage = await readFileAsDataURL(photoFile);
+    const editing = store.rooms.find((room) => room.id === roomId) || null;
 
-    if (!type || !code) {
-      toast("Pilih tipe dan kode kamar.");
+    if (!code || !type || !price || !floor) {
+      toast("Isi kode, tipe, harga, dan lantai kamar.");
       return;
     }
 
-    const existing = store.rooms.find((room) => room.code.toLowerCase() === code.toLowerCase());
-    if (existing) {
-      existing.type = type;
-      existing.is_available = available;
+    const duplicate = store.rooms.find(
+      (room) => room.code.toLowerCase() === code.toLowerCase() && room.id !== roomId
+    );
+    if (duplicate) {
+      toast("Kode kamar sudah digunakan.");
+      return;
+    }
+
+    if (editing) {
+      editing.code = code;
+      editing.type = type;
+      editing.price = price;
+      editing.floor = floor;
+      editing.is_available = available;
+      editing.image = uploadedImage || appState.adminPhotoPreview || editing.image || typeImage(type);
     } else {
       store.rooms.push({
         id: uid("room"),
         code,
         type,
+        price,
+        floor,
+        image: uploadedImage || appState.adminPhotoPreview || typeImage(type),
         is_available: available,
       });
     }
     saveStore();
     appState.adminNewRoom = false;
-    toast("Status kamar berhasil disimpan.");
+    appState.adminRoomFormOpen = false;
+    appState.adminEditingRoomId = "";
+    appState.adminPhotoPreview = "";
+    appState.adminRoomType = type;
+    toast(editing ? "Data kamar diperbarui." : "Kamar baru berhasil ditambahkan.");
     renderApp();
     return;
   }
