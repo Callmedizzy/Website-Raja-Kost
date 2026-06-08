@@ -588,20 +588,15 @@ function renderAppBar({
             : ""
         }
         <button type="button" class="nav-brand" data-action="go-route" data-route="/home" aria-label="RAJA kost">
-          <img src="assets/icon/app_icon.png" alt="" aria-hidden="true" />
-          <span>Raja Kost</span>
+          <img src="assets/icon/raja-kost-logo.png" alt="Raja Kost" />
         </button>
       </div>
-      <label class="nav-search" aria-label="Cari kost">
-        <input id="navSearch" type="search" placeholder="Cari kost..." value="${escapeHtml(appState.homeSearch)}" />
-      </label>
       <nav class="nav-links" aria-label="Menu utama">
         <button type="button" class="nav-link" data-action="home-section" data-section="products">PRODUCT</button>
         <button type="button" class="nav-link" data-action="home-section" data-section="gallery">GALLERY</button>
         <button type="button" class="nav-link" data-action="go-route" data-route="/help">ABOUT</button>
       </nav>
       <div class="nav-right">
-        <button type="button" class="nav-cta" data-action="home-section" data-section="products">BOOKING</button>
         <button type="button" class="nav-login ${user ? "is-logged-in" : ""}" data-action="go-route" data-route="${accountRoute}" aria-label="${accountLabel}">
           <span aria-hidden="true"></span>
         </button>
@@ -612,19 +607,7 @@ function renderAppBar({
 
 function renderHomePage() {
   const favs = favoriteSet();
-  const q = appState.homeSearch.trim().toLowerCase();
-  const rooms = KOSTS.filter((room) => {
-    const inSearch =
-      q.length === 0 ||
-      room.name.toLowerCase().includes(q) ||
-      room.location.toLowerCase().includes(q);
-    if (!inSearch) return false;
-    if (!matchesPriceFilter(room)) return false;
-    if (!matchesFacilityFilter(room)) return false;
-    if (appState.homeFilter === "all") return true;
-    if (appState.homeFilter === "favorites") return favs.has(room.id);
-    return room.type === appState.homeFilter;
-  });
+  const rooms = KOSTS;
 
   return `
     <section class="page">
@@ -644,44 +627,6 @@ function renderHomePage() {
                 <p class="eyebrow">PRODUCT</p>
                 <h2>Daftar Kamar Raja Kost</h2>
               </div>
-              <span class="count-pill">${rooms.length} pilihan</span>
-            </div>
-            <div class="filter-panel">
-              <label class="search">
-                <input id="homeSearch" type="search" placeholder="Cari nama atau lokasi kost" value="${escapeHtml(
-                  appState.homeSearch
-                )}" />
-              </label>
-              <div class="filter-grid">
-                <div class="field compact">
-                  <label>Harga</label>
-                  <select data-action="home-price-filter">
-                    ${Object.entries(PRICE_FILTERS)
-                      .map(
-                        ([value, label]) =>
-                          `<option value="${value}" ${appState.homePriceFilter === value ? "selected" : ""}>${label}</option>`
-                      )
-                      .join("")}
-                  </select>
-                </div>
-                <div class="field compact">
-                  <label>Fasilitas</label>
-                  <select data-action="home-facility-filter">
-                    <option value="all" ${appState.homeFacilityFilter === "all" ? "selected" : ""}>Semua fasilitas</option>
-                    ${FACILITY_FILTERS.map(
-                      (facility) =>
-                        `<option value="${facility}" ${appState.homeFacilityFilter === facility ? "selected" : ""}>${facility}</option>`
-                    ).join("")}
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="chips">
-              ${renderHomeFilterChip("all", "Semua")}
-              ${renderHomeFilterChip("single_fan", "Single Fan")}
-              ${renderHomeFilterChip("single_ac", "Single AC")}
-              ${renderHomeFilterChip("deluxe", "Deluxe")}
-              ${renderHomeFilterChip("favorites", "Favorit")}
             </div>
             <div class="room-grid">
               ${
