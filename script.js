@@ -4,7 +4,7 @@ const KOSTS = [
     name: "Kamar Single Fan",
     type: "single_fan",
     price: 700000,
-    description: "Kamar kost dengan kipas angin, ukuran 3x3 meter.",
+    description: "Kamar nyaman untuk 1 orang dengan kipas angin. Cocok untuk mahasiswa atau pekerja yang mencari kenyamanan sederhana.",
     image: "assets/images/kamar-single-fan.jpg",
     facilities: ["Kasur", "Lemari", "Meja Belajar", "Kipas Angin"],
     location: "Jl. Tegalgondo No. 123, Malang",
@@ -17,7 +17,7 @@ const KOSTS = [
     name: "Kamar Single AC",
     type: "single_ac",
     price: 1200000,
-    description: "Kamar kost dengan AC, ukuran 3x4 meter.",
+    description: "Kamar ber-AC dengan suasana sejuk dan desain minimalis modern. Dilengkapi fasilitas untuk mendukung aktivitas harian Anda.",
     image: "assets/images/kamar-ac.jpg",
     facilities: ["Kasur", "Lemari", "Meja Belajar", "AC", "TV"],
     location: "Jl. Tegalgondo No. 123, Malang",
@@ -30,7 +30,7 @@ const KOSTS = [
     name: "Kamar Deluxe",
     type: "deluxe",
     price: 1800000,
-    description: "Kamar kost deluxe dengan kamar mandi dalam.",
+    description: "Kamar lebih luas dengan fasilitas premium untuk kenyamanan maksimal. Ideal untuk Anda yang mengutamakan kualitas dan privasi.",
     image: "assets/images/kamar-deluxe.jpg",
     facilities: ["Kasur", "Lemari", "Meja Belajar", "AC", "TV", "Kamar Mandi Dalam"],
     location: "Jl. Tegalgondo No. 123, Malang",
@@ -46,7 +46,7 @@ const SERVICES = [
   {
     id: "1",
     name: "Laundry Express",
-    description: "Layanan laundry kilat",
+    description: "Layanan laundry kilat, bersih, wangi dan rapi.",
     price: 8000,
     unit: "kg",
     icon: "laundry",
@@ -55,7 +55,7 @@ const SERVICES = [
   {
     id: "2",
     name: "Waste Pickup",
-    description: "Penjemputan sampah harian",
+    description: "Penjemputan sampah setiap hari.",
     price: 50000,
     unit: "bulan",
     icon: "trash",
@@ -64,7 +64,7 @@ const SERVICES = [
   {
     id: "3",
     name: "Cleaning Service",
-    description: "Pembersihan kamar berkala",
+    description: "Pembersihan kamar secara rutin.",
     price: 75000,
     unit: "bulan",
     icon: "cleaning",
@@ -149,10 +149,10 @@ const FACILITY_FILTERS = ["Kipas Angin", "AC", "TV", "Kamar Mandi Dalam"];
 
 const BOOKING_STATUSES = ["Menunggu Konfirmasi", "Dikonfirmasi", "Ditolak"];
 
-const SERVICE_ICON_TEXT = {
-  laundry: "LND",
-  trash: "TRH",
-  cleaning: "CLN",
+const SERVICE_ICON_SRC = {
+  laundry: "assets/icon/Laundry.png",
+  trash: "assets/icon/Waste Pickup.png",
+  cleaning: "assets/icon/Celaning Service.png",
 };
 
 const ROUTES = new Set([
@@ -484,6 +484,27 @@ function bookingStatusClass(status) {
   return "waiting";
 }
 
+function roomFacilitiesForCard(room) {
+  const base = [
+    { label: "Kasur", icon: "▱" },
+    { label: "Lemari", icon: "▤" },
+  ];
+  const hasAc = room.facilities.includes("AC");
+  const climate = hasAc
+    ? { label: "AC", icon: "❄" }
+    : { label: "Kipas Angin", icon: "◎" };
+  const icons = [
+    ...base,
+    climate,
+    { label: "WiFi", icon: "≋" },
+    { label: "Meja Belajar", icon: "▥" },
+  ];
+  if (room.facilities.includes("Kamar Mandi Dalam")) {
+    icons.push({ label: "Kamar Mandi Dalam", icon: "↕" });
+  }
+  return icons;
+}
+
 function getRoomRowsByType(type) {
   return store.rooms
     .filter((room) => room.type === type)
@@ -588,7 +609,7 @@ function renderAppBar({
             : ""
         }
         <button type="button" class="nav-brand" data-action="go-route" data-route="/home" aria-label="RAJA kost">
-          <img src="assets/icon/raja-kost-logo.png" alt="Raja Kost" />
+          <img src="assets/icon/ChatGPT Image Jun 3, 2026, 04_53_08 AM.png" alt="Raja Kost" />
         </button>
       </div>
       <nav class="nav-links" aria-label="Menu utama">
@@ -638,12 +659,7 @@ function renderHomePage() {
           </section>
         </div>
         <aside class="services-panel" aria-label="Layanan Tambahan">
-          <div class="block-head">
-            <div>
-              <p class="eyebrow">ADD-ON</p>
-              <h2>Layanan Tambahan</h2>
-            </div>
-          </div>
+          <h2 class="services-title-pill">LAYANAN TAMBAHAN</h2>
           <div class="service-list">
             ${SERVICES.map((service) => renderServiceCard(service)).join("")}
           </div>
@@ -687,38 +703,31 @@ function renderHomeFilterChip(value, label) {
 }
 
 function renderRoomCard(room, liked) {
-  const rows = getRoomRowsByType(room.type);
-  const availableCount = rows.length ? rows.filter((row) => row.is_available).length : room.available ? 1 : 0;
   const floorLabel = room.floor || "Lantai 1";
-  const shortFacilities = room.facilities.slice(0, 4);
+  const facilityIcons = roomFacilitiesForCard(room);
   return `
-    <article class="room-card" data-room-id="${room.id}">
+    <article class="room-card" data-action="open-detail" data-room-id="${room.id}" aria-label="Buka detail ${escapeHtml(
+      room.name
+    )}">
       <div class="room-media">
         <img src="${displayImageForType(room.type)}" alt="${escapeHtml(room.name)}" loading="lazy" />
       </div>
       <div class="room-content">
-        <div class="room-topline">
-          <span class="room-type ${room.type}">${TYPE_UPPER[room.type] || room.type.toUpperCase()}</span>
-          <span class="floor-badge">${escapeHtml(floorLabel)}</span>
-          <button type="button" class="fav-btn ${liked ? "active" : ""}" data-action="toggle-favorite" data-room-id="${
-            room.id
-          }">${liked ? "Favorit" : "Simpan"}</button>
+        <div class="floor-mark">
+          <span class="building-icon" aria-hidden="true">▦</span>
+          <span>${escapeHtml(floorLabel)}</span>
         </div>
-        <h3 class="room-name">${escapeHtml(room.name)}</h3>
-        <p class="room-location">${escapeHtml(room.location)}</p>
+        <h3 class="room-name-pill">${escapeHtml(room.name)}</h3>
         <p class="room-description">${escapeHtml(room.description)}</p>
-        <div class="facility-mini-row">
-          ${shortFacilities.map((item) => `<span class="facility-mini">${escapeHtml(item)}</span>`).join("")}
+        <div class="room-meta-line">
+          <span class="room-meta-label">Fasilitas :</span>
+          <div class="facility-icon-pill" aria-label="${escapeHtml(room.facilities.join(", "))}">
+            ${facilityIcons.map((item) => `<span title="${escapeHtml(item.label)}">${escapeHtml(item.icon)}</span>`).join("")}
+          </div>
         </div>
-        <div class="room-bottom">
-          <p class="room-price ${room.type}">${formatRupiah(room.price)}/bulan</p>
-          <span class="availability ${availableCount > 0 ? "ok" : "no"}">${
-            availableCount > 0 ? `${availableCount} Tersedia` : "Terisi"
-          }</span>
-        </div>
-        <div class="room-actions">
-          <button type="button" class="btn muted" data-action="open-detail" data-room-id="${room.id}">Detail</button>
-          <button type="button" class="btn whatsapp" data-action="contact-wa" data-room-id="${room.id}">WhatsApp</button>
+        <div class="room-meta-line price-line">
+          <span class="room-meta-label">Harga :</span>
+          <p class="room-price-pill ${room.type}">${formatRupiah(room.price).replace("Rp", "RP. ")}/Bulan</p>
         </div>
       </div>
     </article>
@@ -727,18 +736,16 @@ function renderRoomCard(room, liked) {
 
 function renderServiceCard(service) {
   const iconClass = ["laundry", "trash", "cleaning"].includes(service.icon) ? service.icon : "misc";
-  const iconText = SERVICE_ICON_TEXT[service.icon] || "SRV";
+  const serviceTitle = service.icon === "laundry" ? service.name.toUpperCase() : service.name;
+  const iconSrc = SERVICE_ICON_SRC[service.icon] || SERVICE_ICON_SRC.cleaning;
   return `
     <article class="service-card">
-      <div class="service-icon ${iconClass}">${iconText}</div>
-      <div class="service-info">
-        <h3>${escapeHtml(service.name)}</h3>
-        <p>${escapeHtml(service.description)}</p>
+      <div class="service-icon ${iconClass}">
+        <img src="${iconSrc}" alt="" aria-hidden="true" loading="lazy" />
       </div>
-      <div class="service-buy">
-        <p class="service-price">${formatRupiah(service.price)}</p>
-        <p class="service-unit">/${escapeHtml(service.unit)}</p>
-        <button type="button" class="btn muted" data-action="open-room-picker" data-service-id="${service.id}">Pesan</button>
+      <div class="service-info">
+        <h3>${escapeHtml(serviceTitle)}</h3>
+        <p>${escapeHtml(service.description)}</p>
       </div>
     </article>
   `;
