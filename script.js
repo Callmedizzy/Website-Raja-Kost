@@ -196,6 +196,7 @@ const appState = {
   registerError: "",
   redirectAfterLogin: null,
   pendingScrollTarget: "",
+  faqOpenIndex: null,
   picker: {
     open: false,
     serviceId: "",
@@ -996,11 +997,32 @@ function renderLoginPage(params = {}) {
         ${renderAppBar({
           title: "Login",
           showMenu: false,
-          showBackButton: true,
+          showBackButton: false,
         })}
-        <section class="auth-choice">
-          <button type="button" class="auth-choice-btn" data-action="go-route" data-route="/login?role=user">LOGIN</button>
-          <button type="button" class="auth-choice-btn admin" data-action="go-route" data-route="/login?role=admin">LOGIN ADMIN</button>
+        <section class="auth-choice" aria-label="Pilihan login Raja Kost">
+          <div class="auth-choice-panel">
+            <button
+              type="button"
+              class="auth-choice-btn"
+              data-action="go-route"
+              data-route="/login?role=user"
+              aria-label="Login sebagai User"
+            >
+              LOGIN
+            </button>
+            <button
+              type="button"
+              class="auth-choice-btn"
+              data-action="go-route"
+              data-route="/login?role=admin"
+              aria-label="Login sebagai Admin"
+            >
+              LOGIN ADMIN
+            </button>
+            <button type="button" class="auth-register-link" data-action="go-route" data-route="/register">
+              BELUM PUNYA AKUN ADMIN ATAU USER? DAFTAR DISINI
+            </button>
+          </div>
         </section>
       </section>
     `;
@@ -1167,6 +1189,47 @@ function renderSettingsPage() {
 }
 
 function renderHelpPage() {
+  const faqs = [
+    {
+      question: "Apakah RajaKost dapat digunakan untuk mencari kost secara online?",
+      answer:
+        "Ya. RajaKost dapat digunakan untuk mencari kost secara online berdasarkan informasi yang tersedia pada website.",
+    },
+    {
+      question: "Apakah pengguna harus memiliki akun untuk melihat daftar kost?",
+      answer:
+        "Pengguna dapat melihat daftar kamar kost melalui website. Namun, untuk fitur tertentu seperti booking, pengguna mungkin perlu login terlebih dahulu.",
+    },
+    {
+      question: "Apakah RajaKost menyediakan pembayaran online?",
+      answer: "Tidak. Website RajaKost tidak menyediakan fitur pembayaran online atau payment gateway.",
+    },
+    {
+      question: "Apakah RajaKost tersedia dalam bentuk aplikasi mobile?",
+      answer:
+        "Tidak. RajaKost hanya dikembangkan dalam bentuk website dan belum tersedia sebagai aplikasi Android atau iOS.",
+    },
+    {
+      question: "Apakah pengguna dapat memberi rating atau review kost?",
+      answer: "Tidak. Fitur review dan rating kost tidak termasuk dalam ruang lingkup sistem.",
+    },
+    {
+      question: "Bagaimana cara menghubungi pemilik kost?",
+      answer:
+        "Pengguna dapat membuka halaman detail kamar kost, lalu memilih tombol booking atau kontak pemilik yang tersedia.",
+    },
+    {
+      question: "Siapa yang dapat mengelola data kost?",
+      answer:
+        "Data kost dapat dikelola oleh pemilik kost melalui dashboard pemilik. Admin juga dapat memantau dan mengelola data melalui dashboard admin.",
+    },
+    {
+      question: "Apa yang harus dilakukan jika website error?",
+      answer:
+        "Pengguna dapat melakukan refresh halaman, memeriksa koneksi internet, atau mencoba kembali beberapa saat kemudian. Jika masalah tetap terjadi, pengguna dapat menghubungi admin sistem.",
+    },
+  ];
+
   return `
     <section class="page">
       ${renderAppBar({
@@ -1174,21 +1237,41 @@ function renderHelpPage() {
         showMenu: true,
         showBackButton: true,
       })}
-      <section class="panel-stack">
-        <section class="panel">
-          <h3>FAQ Singkat</h3>
-          <p class="subtle"><strong>Bagaimana cara memesan kost?</strong><br />Pilih kost atau layanan, tentukan jumlah/durasi, lalu lanjutkan pembayaran.</p>
-          <p class="subtle"><strong>Apakah data saya aman?</strong><br />Data disimpan secara lokal di browser ini untuk demo website.</p>
-        </section>
-        <section class="panel">
-          <h3>Kontak Admin</h3>
-          <p class="subtle">Email: admin@rajakost.com</p>
-          <p class="subtle">WhatsApp: +62 811-456-999</p>
-        </section>
-        <section class="panel">
-          <h3>Tentang Aplikasi</h3>
-          <p class="subtle">Raja Kost versi web demo, mengikuti alur Flutter app (login, booking, report, admin, chat).</p>
-        </section>
+      <section class="faq-page">
+        <div class="faq-head">
+          <p class="eyebrow">ABOUT</p>
+          <h2>Frequently Asked Questions (FAQ)</h2>
+        </div>
+        <div class="faq-list">
+          ${faqs
+            .map(
+              (faq, index) => {
+                const isOpen = appState.faqOpenIndex === index;
+                return `
+                <article class="faq-card ${isOpen ? "is-open" : ""}" data-faq-card="${index}">
+                  <button
+                    type="button"
+                    class="faq-question-row"
+                    data-action="toggle-faq"
+                    data-faq-index="${index}"
+                    aria-expanded="${isOpen ? "true" : "false"}"
+                    aria-controls="faq-answer-${index}"
+                  >
+                    <span class="faq-number">${index + 1}</span>
+                    <span class="faq-question">${escapeHtml(faq.question)}</span>
+                    <span class="faq-arrow" aria-hidden="true"></span>
+                  </button>
+                  <div class="faq-answer-wrap" id="faq-answer-${index}">
+                    <div class="faq-answer-inner">
+                      <p class="faq-answer">${escapeHtml(faq.answer)}</p>
+                    </div>
+                  </div>
+                </article>
+              `;
+              }
+            )
+            .join("")}
+        </div>
       </section>
     </section>
   `;
@@ -2113,6 +2196,29 @@ function scrollToHomeSection(section) {
   }
 }
 
+function toggleFaq(target) {
+  const index = Number(target.dataset.faqIndex);
+  if (!Number.isInteger(index)) return;
+
+  const card = target.closest(".faq-card");
+  const list = target.closest(".faq-list");
+  const shouldOpen = !card?.classList.contains("is-open");
+
+  list?.querySelectorAll(".faq-card.is-open").forEach((item) => {
+    item.classList.remove("is-open");
+    item.querySelector(".faq-question-row")?.setAttribute("aria-expanded", "false");
+  });
+
+  if (card && shouldOpen) {
+    card.classList.add("is-open");
+    target.setAttribute("aria-expanded", "true");
+    appState.faqOpenIndex = index;
+  } else {
+    target.setAttribute("aria-expanded", "false");
+    appState.faqOpenIndex = null;
+  }
+}
+
 function onClick(event) {
   const target = event.target.closest("[data-action]");
   if (!target) return;
@@ -2148,6 +2254,11 @@ function onClick(event) {
       appState.pendingScrollTarget = section;
       go("/home");
     }
+    return;
+  }
+
+  if (action === "toggle-faq") {
+    toggleFaq(target);
     return;
   }
 

@@ -297,11 +297,11 @@ textarea {
 
 .nav-link:hover,
 .nav-link:focus-visible {
-  background: #202020;
-  color: #ffe15a;
+  background: var(--yellow);
+  color: #0b0b0b;
   outline: none;
-  box-shadow: 0 10px 18px -16px rgba(0, 0, 0, 0.5);
-  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 12px 20px -15px rgba(0, 0, 0, 0.45);
+  transform: translateY(-1px) scale(1.02);
 }
 
 .nav-brand:hover,
@@ -1095,6 +1095,138 @@ textarea {
   font-size: 1rem;
 }
 
+.faq-page {
+  margin-top: 1rem;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  border: 1px solid rgba(20, 20, 20, 0.12);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 28px -26px rgba(0, 0, 0, 0.5);
+}
+
+.faq-head {
+  display: grid;
+  gap: 0.24rem;
+  margin-bottom: 1rem;
+}
+
+.faq-head h2 {
+  margin: 0;
+  color: #0b0b0b;
+  font: 900 clamp(1.45rem, 3vw, 2.25rem)/1.12 "Sora", "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+.faq-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.faq-card {
+  overflow: hidden;
+  border: 1.4px solid rgba(20, 20, 20, 0.16);
+  border-radius: 14px;
+  background: #fff;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.faq-card:hover {
+  border-color: rgba(20, 20, 20, 0.32);
+  box-shadow: 0 14px 24px -22px rgba(0, 0, 0, 0.45);
+  transform: translateY(-1px);
+}
+
+.faq-card.is-open {
+  border-color: rgba(20, 20, 20, 0.34);
+  box-shadow: 0 14px 24px -22px rgba(0, 0, 0, 0.45);
+}
+
+.faq-question-row {
+  width: 100%;
+  border: 0;
+  background: #fff;
+  color: #0b0b0b;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 26px;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+  text-align: left;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.faq-question-row:hover,
+.faq-question-row:focus-visible {
+  background: #fffbed;
+  outline: none;
+}
+
+.faq-card.is-open .faq-question-row {
+  background: #fff9d7;
+}
+
+.faq-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--yellow);
+  color: #0b0b0b;
+  font: 900 0.92rem/1 "Sora", "Segoe UI", sans-serif;
+}
+
+.faq-question {
+  display: block;
+  color: #0b0b0b;
+  font: 900 0.98rem/1.35 "Sora", "Segoe UI", sans-serif;
+}
+
+.faq-arrow {
+  justify-self: center;
+  width: 12px;
+  height: 12px;
+  border: solid #0b0b0b;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+  transition: transform 0.22s ease;
+}
+
+.faq-card.is-open .faq-arrow {
+  transform: rotate(-135deg);
+}
+
+.faq-answer-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.26s ease,
+    opacity 0.2s ease;
+}
+
+.faq-card.is-open .faq-answer-wrap {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.faq-answer-inner {
+  overflow: hidden;
+}
+
+.faq-answer {
+  margin: 0;
+  padding: 0 1rem 1rem calc(42px + 1.85rem);
+  color: #3f3f35;
+  font: 600 0.9rem/1.58 "Manrope", "Segoe UI", sans-serif;
+}
+
 .row-between {
   display: flex;
   align-items: center;
@@ -1237,24 +1369,35 @@ textarea {
 
 .auth-page {
   min-height: calc(100vh - 2rem);
+  background: #fff;
 }
 
 .auth-choice {
-  margin: 4rem auto 0;
-  width: min(620px, 100%);
+  margin: clamp(3rem, 7vh, 6rem) auto 0;
+  width: min(760px, calc(100% - 2rem));
+}
+
+.auth-choice-panel {
+  min-height: 540px;
+  border-radius: 48px;
+  background: #030303;
+  padding: clamp(2.4rem, 6vw, 4.3rem) 1.5rem 2.5rem;
   display: grid;
-  gap: 1rem;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(2.4rem, 6vh, 4.5rem);
 }
 
 .auth-choice-btn {
-  min-height: 92px;
+  width: min(360px, 82%);
+  min-height: 118px;
   border: 0;
   border-radius: 999px;
-  background: #0b0b0b;
-  color: var(--yellow);
-  font: 900 1.65rem/1 "Sora", "Segoe UI", sans-serif;
+  background: #f6e74a;
+  color: #0b0b0b;
+  font: 900 clamp(2rem, 4vw, 3.1rem)/1 "Sora", "Segoe UI", sans-serif;
   cursor: pointer;
-  box-shadow: 0 22px 34px -24px rgba(0, 0, 0, 0.86);
+  box-shadow: none;
   transition:
     background 0.18s ease,
     color 0.18s ease,
@@ -1262,26 +1405,32 @@ textarea {
     box-shadow 0.18s ease;
 }
 
-.auth-choice-btn.admin {
-  background: var(--yellow);
-  color: #0b0b0b;
-}
-
 .auth-choice-btn:hover,
 .auth-choice-btn:focus-visible {
   outline: none;
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 26px 40px -24px rgba(0, 0, 0, 0.95);
+  background: #fff06b;
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 18px 28px -24px rgba(246, 231, 74, 0.7);
 }
 
-.auth-choice-btn:hover {
-  background: var(--yellow);
-  color: #0b0b0b;
+.auth-register-link {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  padding: 0.1rem;
+  cursor: pointer;
+  font: 900 0.92rem/1.35 "Manrope", "Segoe UI", sans-serif;
+  text-align: center;
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 
-.auth-choice-btn.admin:hover {
-  background: #0b0b0b;
-  color: var(--yellow);
+.auth-register-link:hover,
+.auth-register-link:focus-visible {
+  color: #f6e74a;
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .auth-card {
@@ -2256,12 +2405,54 @@ textarea {
   }
 
   .auth-choice-btn {
-    min-height: 76px;
-    font-size: 1.18rem;
+    min-height: 88px;
+    font-size: 1.7rem;
+  }
+
+  .auth-choice-panel {
+    min-height: 430px;
+    border-radius: 32px;
+    gap: 2rem;
+    padding: 2.3rem 1rem 2rem;
+  }
+
+  .auth-register-link {
+    font-size: 0.78rem;
   }
 
   .upload-preview {
     grid-template-columns: 1fr;
+  }
+
+  .faq-card {
+    border-radius: 12px;
+  }
+
+  .faq-question-row {
+    grid-template-columns: 34px minmax(0, 1fr) 22px;
+    gap: 0.68rem;
+    padding: 0.82rem;
+  }
+
+  .faq-number {
+    width: 30px;
+    height: 30px;
+    font-size: 0.78rem;
+  }
+
+  .faq-question {
+    font-size: 0.9rem;
+  }
+
+  .faq-answer {
+    padding: 0 0.82rem 0.82rem calc(34px + 1.5rem);
+    font-size: 0.84rem;
+  }
+
+  .faq-arrow {
+    width: 10px;
+    height: 10px;
+    border-width: 0 2.5px 2.5px 0;
   }
 }
 
